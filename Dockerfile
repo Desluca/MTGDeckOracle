@@ -16,5 +16,6 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/database ./database
+COPY --from=build /app/bestcard.txt ./bestcard.txt
 EXPOSE 5174
 CMD ["npm", "start"]

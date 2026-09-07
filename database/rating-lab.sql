@@ -30,6 +30,22 @@ create index if not exists rating_cards_rating_idx on rating_cards (rating);
 create index if not exists rating_comparisons_created_at_idx on rating_comparisons (created_at);
 create index if not exists rating_comparisons_visitor_id_idx on rating_comparisons (visitor_id);
 
+create table if not exists rating_card_seeds (
+  seed_name text not null,
+  seed_version text not null,
+  normalized_name text not null,
+  name text not null,
+  rating integer not null,
+  created_at timestamptz not null default now(),
+  primary key (seed_name, normalized_name)
+);
+
+create table if not exists rating_seed_state (
+  seed_name text primary key,
+  seed_version text not null,
+  applied_at timestamptz not null default now()
+);
+
 create or replace function set_rating_cards_updated_at()
 returns trigger as $$
 begin

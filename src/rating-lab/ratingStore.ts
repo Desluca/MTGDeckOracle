@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { updateEloRatings } from "./elo.js";
-import type { CardComparison, MatchStrategy, RatingCard, RatingLabDatabase } from "./ratingTypes.js";
+import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase } from "./ratingTypes.js";
 
 const EMPTY_DATABASE: RatingLabDatabase = {
   cards: {},
@@ -16,6 +16,7 @@ export interface RatingStore {
   findCard(cardId: string): Promise<RatingCard | undefined>;
   findCardsWithRatings(): Promise<readonly RatingCard[]>;
   recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison>;
+  applyRatingSeed(seedName: string, seedVersion: string, cards: readonly RatingCardSeed[]): Promise<boolean>;
 }
 
 export class FileRatingStore implements RatingStore {
@@ -28,7 +29,8 @@ export class FileRatingStore implements RatingStore {
   async upsertCard(card: RatingCard): Promise<RatingCard> {
     const database = await this.readDatabase();
     const existingCard = database.cards[card.id];
-    const nextCard = existingCard ? { ...card, rating: existingCard.rating, wins: existingCard.wins, losses: existingCard.losses } : card;
+    const seededRating = database.metadata?.seededCardRatings?.[normalizeSeedLookupName(card.name)]?.rating;
+    const nextCard = existingCard ? { ...card, rating: existingCard.rating, wins: existingCard.wins, losses: existingCard.losses } : { ...card, rating: seededRating ?? card.rating };
 
     await this.writeDatabase({
       ...database,
@@ -96,6 +98,40 @@ export class FileRatingStore implements RatingStore {
     return comparison;
   }
 
+  async applyRatingSeed(seedName: string, seedVersion: string, cards: readonly RatingCardSeed[]): Promise<boolean> {
+    const database = await this.readDatabase();
+
+    if (database.metadata?.seedVersions?.[seedName] === seedVersion) {
+      return false;
+    }
+
+    const seededCardRatings = Object.fromEntries(cards.map((card) => [card.normalizedName, card]));
+    const nextCards = Object.fromEntries(
+      Object.entries(database.cards).map(([cardId, card]) => {
+        const seededRating = seededCardRatings[normalizeSeedLookupName(card.name)]?.rating;
+        return [cardId, seededRating ? { ...card, rating: seededRating } : card];
+      }),
+    );
+
+    await this.writeDatabase({
+      ...database,
+      cards: nextCards,
+      metadata: {
+        ...database.metadata,
+        seedVersions: {
+          ...database.metadata?.seedVersions,
+          [seedName]: seedVersion,
+        },
+        seededCardRatings: {
+          ...database.metadata?.seededCardRatings,
+          ...seededCardRatings,
+        },
+      },
+    });
+
+    return true;
+  }
+
   private async readDatabase(): Promise<RatingLabDatabase> {
     try {
       const rawDatabase = await readFile(this.databasePath, "utf8");
@@ -117,6 +153,10 @@ export class FileRatingStore implements RatingStore {
 
 function isMissingFileError(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+function normalizeSeedLookupName(name: string): string {
+  return name.trim().toLowerCase();
 }
 
 export const RatingStore = FileRatingStore;

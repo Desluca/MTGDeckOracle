@@ -4,7 +4,7 @@ import pg from "pg";
 
 import { updateEloRatings } from "./elo.js";
 import type { RatingStore } from "./ratingStore.js";
-import type { CardComparison, MatchStrategy, RatingCard, RatingLabDatabase } from "./ratingTypes.js";
+import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase } from "./ratingTypes.js";
 
 const { Pool } = pg;
 
@@ -32,6 +32,10 @@ interface CardComparisonRow {
   readonly strategy: MatchStrategy;
   readonly visitor_id: string | null;
   readonly created_at: Date | string;
+}
+
+interface SeedVersionRow {
+  readonly seed_version: string;
 }
 
 export class PostgresRatingStore implements RatingStore {
@@ -67,7 +71,11 @@ export class PostgresRatingStore implements RatingStore {
       insert into rating_cards (
         id, oracle_id, name, type_line, mana_value, image_url, scryfall_uri, rating, wins, losses
       )
-      values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      values (
+        $1, $2, $3, $4, $5, $6, $7,
+        coalesce((select rating from rating_card_seeds where normalized_name = $11 limit 1), $8),
+        $9, $10
+      )
       on conflict (id) do update set
         oracle_id = excluded.oracle_id,
         name = excluded.name,
@@ -88,6 +96,7 @@ export class PostgresRatingStore implements RatingStore {
         card.rating,
         card.wins,
         card.losses,
+        normalizeSeedLookupName(card.name),
       ],
     );
 
@@ -182,6 +191,75 @@ export class PostgresRatingStore implements RatingStore {
     }
   }
 
+  async applyRatingSeed(seedName: string, seedVersion: string, cards: readonly RatingCardSeed[]): Promise<boolean> {
+    await this.ensureSchema();
+
+    const client = await this.pool.connect();
+
+    try {
+      await client.query("begin");
+
+      const currentSeed = await client.query<SeedVersionRow>(
+        "select seed_version from rating_seed_state where seed_name = $1 for update",
+        [seedName],
+      );
+
+      if (currentSeed.rows[0]?.seed_version === seedVersion) {
+        await client.query("commit");
+        return false;
+      }
+
+      await client.query("delete from rating_card_seeds where seed_name = $1", [seedName]);
+
+      await client.query(
+        `
+        insert into rating_card_seeds (seed_name, seed_version, normalized_name, name, rating)
+        select $1, $2, seed.normalized_name, seed.name, seed.rating
+        from jsonb_to_recordset($3::jsonb) as seed(normalized_name text, name text, rating integer)
+        on conflict (seed_name, normalized_name) do update set
+          seed_version = excluded.seed_version,
+          name = excluded.name,
+          rating = excluded.rating
+        `,
+        [
+          seedName,
+          seedVersion,
+          JSON.stringify(cards.map((card) => ({ normalized_name: card.normalizedName, name: card.name, rating: card.rating }))),
+        ],
+      );
+
+      await client.query(
+        `
+        update rating_cards
+        set rating = rating_card_seeds.rating
+        from rating_card_seeds
+        where rating_card_seeds.seed_name = $1
+          and lower(rating_cards.name) = rating_card_seeds.normalized_name
+        `,
+        [seedName],
+      );
+
+      await client.query(
+        `
+        insert into rating_seed_state (seed_name, seed_version, applied_at)
+        values ($1, $2, now())
+        on conflict (seed_name) do update set
+          seed_version = excluded.seed_version,
+          applied_at = excluded.applied_at
+        `,
+        [seedName, seedVersion],
+      );
+
+      await client.query("commit");
+      return true;
+    } catch (error) {
+      await client.query("rollback");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   private async ensureSchema(): Promise<void> {
     this.schemaInitialization ??= this.pool.query(`
       create table if not exists rating_cards (
@@ -218,6 +296,22 @@ export class PostgresRatingStore implements RatingStore {
       create index if not exists rating_cards_rating_idx on rating_cards (rating);
       create index if not exists rating_comparisons_created_at_idx on rating_comparisons (created_at);
       create index if not exists rating_comparisons_visitor_id_idx on rating_comparisons (visitor_id);
+
+      create table if not exists rating_card_seeds (
+        seed_name text not null,
+        seed_version text not null,
+        normalized_name text not null,
+        name text not null,
+        rating integer not null,
+        created_at timestamptz not null default now(),
+        primary key (seed_name, normalized_name)
+      );
+
+      create table if not exists rating_seed_state (
+        seed_name text primary key,
+        seed_version text not null,
+        applied_at timestamptz not null default now()
+      );
 
       create or replace function set_rating_cards_updated_at()
       returns trigger as $$
@@ -274,4 +368,8 @@ function requiredRow<T>(row: T | undefined): T {
   }
 
   return row;
+}
+
+function normalizeSeedLookupName(name: string): string {
+  return name.trim().toLowerCase();
 }

@@ -35,4 +35,16 @@ export interface CardMatch {
 export interface RatingLabDatabase {
   readonly cards: Record<string, RatingCard>;
   readonly comparisons: readonly CardComparison[];
+  readonly metadata?: RatingLabMetadata;
+}
+
+export interface RatingLabMetadata {
+  readonly seedVersions?: Record<string, string>;
+  readonly seededCardRatings?: Record<string, RatingCardSeed>;
+}
+
+export interface RatingCardSeed {
+  readonly normalizedName: string;
+  readonly name: string;
+  readonly rating: number;
 }

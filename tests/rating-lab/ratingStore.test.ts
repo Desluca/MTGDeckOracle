@@ -68,6 +68,37 @@ describe("RatingStore", () => {
     expect(comparison.visitorId).toBe("visitor-123");
     expect((await store.getDatabase()).comparisons[0]?.visitorId).toBe("visitor-123");
   });
+
+  it("applies rating seeds to existing and future cards", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.upsertCard(card("sol-ring", "Sol Ring"));
+    const applied = await store.applyRatingSeed("bestcard", "v1", [
+      {
+        normalizedName: "sol ring",
+        name: "Sol Ring",
+        rating: 2100,
+      },
+      {
+        normalizedName: "arcane signet",
+        name: "Arcane Signet",
+        rating: 1800,
+      },
+    ]);
+
+    await store.upsertCard(card("arcane-signet", "Arcane Signet"));
+
+    expect(applied).toBe(true);
+    expect((await store.findCard("sol-ring"))?.rating).toBe(2100);
+    expect((await store.findCard("arcane-signet"))?.rating).toBe(1800);
+  });
+
+  it("does not apply the same seed version twice", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await expect(store.applyRatingSeed("bestcard", "v1", [])).resolves.toBe(true);
+    await expect(store.applyRatingSeed("bestcard", "v1", [])).resolves.toBe(false);
+  });
 });
 
 function card(id: string, name: string): RatingCard {
