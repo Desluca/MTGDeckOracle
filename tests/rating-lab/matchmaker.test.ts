@@ -70,6 +70,21 @@ describe("createCardMatch", () => {
     expect(match.left.id).toBe("low");
     expect(match.right.id).toBe("random");
   });
+
+  it("includes exactly 1500-rated cards in the low-rated pool", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+    await store.upsertCard(card("baseline", "Baseline", 1500));
+    await store.upsertCard(card("high", "High", 1700));
+    const source = sequenceSource([card("random", "Random")]);
+
+    const match = await createCardMatch(store, source, {
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0.9, 0, 1]),
+    });
+
+    expect(match.left.id).toBe("baseline");
+    expect(match.right.id).toBe("random");
+  });
 });
 
 function sequenceSource(cards: readonly RatingCard[]): RandomCardSource {

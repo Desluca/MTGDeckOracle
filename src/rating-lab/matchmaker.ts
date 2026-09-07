@@ -40,8 +40,8 @@ export async function createCardMatch(
 
 async function findFirstCardFromRatingPool(store: RatingStore, useHighRatedPool: boolean, randomFn: () => number): Promise<RatingCard | undefined> {
   const cards = await store.findCardsWithRatings();
-  const preferredCandidates = cards.filter((card) => (useHighRatedPool ? card.rating > RATING_BASELINE : card.rating < RATING_BASELINE));
-  const fallbackCandidates = cards.filter((card) => (useHighRatedPool ? card.rating < RATING_BASELINE : card.rating > RATING_BASELINE));
+  const preferredCandidates = cards.filter((card) => (useHighRatedPool ? card.rating > RATING_BASELINE : card.rating <= RATING_BASELINE));
+  const fallbackCandidates = cards.filter((card) => (useHighRatedPool ? card.rating <= RATING_BASELINE : card.rating > RATING_BASELINE));
 
   return pickRandomCard(preferredCandidates, randomFn) ?? pickRandomCard(fallbackCandidates, randomFn);
 }
