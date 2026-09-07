@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
+import { summarizeRatingActivity } from "./activitySummary.js";
 import { createCardMatch } from "./matchmaker.js";
 import { createRatingStore } from "./ratingStoreFactory.js";
 import { ScryfallRandomCardSource } from "./scryfallRandomCardSource.js";
@@ -50,32 +51,49 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
   }
 
   if (request.method === "POST" && isApiPath(url.pathname, "vote")) {
-    const body = await readJsonBody<{ winnerCardId?: string; loserCardId?: string; strategy?: MatchStrategy }>(request);
+    const body = await readJsonBody<{ winnerCardId?: string; loserCardId?: string; strategy?: MatchStrategy; visitorId?: string }>(request);
 
     if (!body.winnerCardId || !body.loserCardId || !body.strategy) {
       sendJson(response, 400, { error: "winnerCardId, loserCardId and strategy are required." });
       return;
     }
 
-    const comparison = await store.recordVote(body.winnerCardId, body.loserCardId, body.strategy);
+    const comparison = await store.recordVote(body.winnerCardId, body.loserCardId, body.strategy, sanitizeVisitorId(body.visitorId));
     sendJson(response, 200, comparison);
     return;
   }
 
   if (request.method === "GET" && isApiPath(url.pathname, "stats")) {
     const database = await store.getDatabase();
+    const uniqueVisitors = new Set(database.comparisons.flatMap((comparison) => (comparison.visitorId ? [comparison.visitorId] : [])));
     sendJson(response, 200, {
       cards: Object.keys(database.cards).length,
       comparisons: database.comparisons.length,
+      uniqueVisitors: uniqueVisitors.size,
     });
+    return;
+  }
+
+  if (request.method === "GET" && isApiPath(url.pathname, "activity")) {
+    const database = await store.getDatabase();
+    sendJson(response, 200, summarizeRatingActivity(database.comparisons));
     return;
   }
 
   sendJson(response, 404, { error: "Not found" });
 }
 
-function isApiPath(pathname: string, endpoint: "match" | "stats" | "vote"): boolean {
+function isApiPath(pathname: string, endpoint: "activity" | "match" | "stats" | "vote"): boolean {
   return pathname === `/api/rating-lab/${endpoint}` || pathname === `/api/${endpoint}`;
+}
+
+function sanitizeVisitorId(visitorId: string | undefined): string | undefined {
+  if (!visitorId) {
+    return undefined;
+  }
+
+  const trimmedVisitorId = visitorId.trim();
+  return /^[a-zA-Z0-9_-]{8,80}$/.test(trimmedVisitorId) ? trimmedVisitorId : undefined;
 }
 
 function sendJson(response: ServerResponse, statusCode: number, body: unknown): void {
@@ -173,6 +191,7 @@ function renderHomePage(): string {
     <p id="stats" class="status"></p>
   </main>
   <script>
+    const visitorId = getOrCreateVisitorId();
     let currentMatch = null;
 
     async function loadMatch() {
@@ -197,7 +216,7 @@ function renderHomePage(): string {
       await fetch('/api/rating-lab/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winnerCardId, loserCardId, strategy: currentMatch.strategy })
+        body: JSON.stringify({ winnerCardId, loserCardId, strategy: currentMatch.strategy, visitorId })
       });
       await loadMatch();
     }
@@ -209,6 +228,19 @@ function renderHomePage(): string {
 
     function escapeHtml(value) {
       return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    function getOrCreateVisitorId() {
+      const storageKey = 'mtgDeckOracleVisitorId';
+      const existingVisitorId = localStorage.getItem(storageKey);
+
+      if (existingVisitorId) {
+        return existingVisitorId;
+      }
+
+      const generatedVisitorId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
+      localStorage.setItem(storageKey, generatedVisitorId);
+      return generatedVisitorId;
     }
 
     loadMatch();

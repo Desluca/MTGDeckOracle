@@ -57,6 +57,17 @@ describe("RatingStore", () => {
     expect((await store.findCard("sol-ring"))?.wins).toBe(1);
     expect((await store.findCard("arcane-signet"))?.losses).toBe(1);
   });
+
+  it("stores anonymous visitor ids on comparisons", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.upsertCard(card("sol-ring", "Sol Ring"));
+    await store.upsertCard(card("arcane-signet", "Arcane Signet"));
+    const comparison = await store.recordVote("sol-ring", "arcane-signet", "random", "visitor-123");
+
+    expect(comparison.visitorId).toBe("visitor-123");
+    expect((await store.getDatabase()).comparisons[0]?.visitorId).toBe("visitor-123");
+  });
 });
 
 function card(id: string, name: string): RatingCard {

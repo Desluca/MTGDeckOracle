@@ -7,6 +7,7 @@ La prima versione pubblica espone:
 - homepage su `/`;
 - Rating Lab su `/rating-lab`;
 - API Rating Lab su `/api/rating-lab/match`, `/api/rating-lab/vote` e `/api/rating-lab/stats`;
+- andamento voti su `/api/rating-lab/activity`;
 - health check su `/health`.
 
 ## Requisiti
@@ -43,7 +44,7 @@ psql "$DATABASE_URL" -f database/rating-lab.sql
 Lo schema crea:
 
 - `rating_cards`: carte viste, rating Elo, vittorie e sconfitte;
-- `rating_comparisons`: storico dei confronti votati;
+- `rating_comparisons`: storico dei confronti votati, timestamp e visitor id anonimo;
 - indici per rating e storico.
 
 ## Deploy Su Render

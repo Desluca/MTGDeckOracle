@@ -20,6 +20,7 @@ export interface CardComparison {
   readonly winnerRatingAfter: number;
   readonly loserRatingAfter: number;
   readonly strategy: MatchStrategy;
+  readonly visitorId?: string;
   readonly createdAt: string;
 }
 

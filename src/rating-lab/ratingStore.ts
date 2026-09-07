@@ -15,7 +15,7 @@ export interface RatingStore {
   upsertCard(card: RatingCard): Promise<RatingCard>;
   findCard(cardId: string): Promise<RatingCard | undefined>;
   findCardsWithRatings(): Promise<readonly RatingCard[]>;
-  recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy): Promise<CardComparison>;
+  recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison>;
 }
 
 export class FileRatingStore implements RatingStore {
@@ -51,7 +51,7 @@ export class FileRatingStore implements RatingStore {
     return Object.values(database.cards);
   }
 
-  async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy): Promise<CardComparison> {
+  async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison> {
     const database = await this.readDatabase();
     const winner = database.cards[winnerCardId];
     const loser = database.cards[loserCardId];
@@ -80,6 +80,7 @@ export class FileRatingStore implements RatingStore {
       winnerRatingAfter: updatedWinner.rating,
       loserRatingAfter: updatedLoser.rating,
       strategy,
+      ...(visitorId ? { visitorId } : {}),
       createdAt: new Date().toISOString(),
     };
 

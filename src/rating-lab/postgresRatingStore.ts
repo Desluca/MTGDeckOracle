@@ -30,6 +30,7 @@ interface CardComparisonRow {
   readonly winner_rating_after: number;
   readonly loser_rating_after: number;
   readonly strategy: MatchStrategy;
+  readonly visitor_id: string | null;
   readonly created_at: Date | string;
 }
 
@@ -107,7 +108,7 @@ export class PostgresRatingStore implements RatingStore {
     return result.rows.map(mapCard);
   }
 
-  async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy): Promise<CardComparison> {
+  async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison> {
     await this.ensureSchema();
 
     const client = await this.pool.connect();
@@ -137,6 +138,7 @@ export class PostgresRatingStore implements RatingStore {
         winnerRatingAfter: updatedRatings.winnerRating,
         loserRatingAfter: updatedRatings.loserRating,
         strategy,
+        ...(visitorId ? { visitorId } : {}),
         createdAt: new Date().toISOString(),
       };
 
@@ -152,9 +154,9 @@ export class PostgresRatingStore implements RatingStore {
         `
         insert into rating_comparisons (
           id, winner_card_id, loser_card_id, winner_rating_before, loser_rating_before,
-          winner_rating_after, loser_rating_after, strategy, created_at
+          winner_rating_after, loser_rating_after, strategy, visitor_id, created_at
         )
-        values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         `,
         [
           comparison.id,
@@ -165,6 +167,7 @@ export class PostgresRatingStore implements RatingStore {
           comparison.winnerRatingAfter,
           comparison.loserRatingAfter,
           comparison.strategy,
+          comparison.visitorId ?? null,
           comparison.createdAt,
         ],
       );
@@ -205,11 +208,16 @@ export class PostgresRatingStore implements RatingStore {
         winner_rating_after integer not null,
         loser_rating_after integer not null,
         strategy text not null check (strategy in ('random', 'similar_rating')),
+        visitor_id text,
         created_at timestamptz not null default now()
       );
 
+      alter table rating_comparisons
+      add column if not exists visitor_id text;
+
       create index if not exists rating_cards_rating_idx on rating_cards (rating);
       create index if not exists rating_comparisons_created_at_idx on rating_comparisons (created_at);
+      create index if not exists rating_comparisons_visitor_id_idx on rating_comparisons (visitor_id);
 
       create or replace function set_rating_cards_updated_at()
       returns trigger as $$
@@ -255,6 +263,7 @@ function mapComparison(row: CardComparisonRow): CardComparison {
     winnerRatingAfter: row.winner_rating_after,
     loserRatingAfter: row.loser_rating_after,
     strategy: row.strategy,
+    ...(row.visitor_id ? { visitorId: row.visitor_id } : {}),
     createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
   };
 }

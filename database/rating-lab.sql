@@ -22,11 +22,13 @@ create table if not exists rating_comparisons (
   winner_rating_after integer not null,
   loser_rating_after integer not null,
   strategy text not null check (strategy in ('random', 'similar_rating')),
+  visitor_id text,
   created_at timestamptz not null default now()
 );
 
 create index if not exists rating_cards_rating_idx on rating_cards (rating);
 create index if not exists rating_comparisons_created_at_idx on rating_comparisons (created_at);
+create index if not exists rating_comparisons_visitor_id_idx on rating_comparisons (visitor_id);
 
 create or replace function set_rating_cards_updated_at()
 returns trigger as $$

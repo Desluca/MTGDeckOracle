@@ -94,6 +94,7 @@ http://localhost:5174
 
 Il rating lab usa Scryfall per pescare carte random e aggiorna i punteggi con Elo.
 In locale salva carte/confronti in `.cache/rating-lab-db.json`; in produzione usa PostgreSQL tramite `DATABASE_URL`.
+Ogni voto salva anche un visitor id anonimo e un timestamp, cosi' sara' possibile mostrare statistiche e grafici di attivita' nel tempo.
 
 Una volta su due prova a scegliere la seconda carta tra quelle gia' viste con rating simile alla prima, cosi' i confronti diventano progressivamente piu' utili per affinare i punteggi.
 
