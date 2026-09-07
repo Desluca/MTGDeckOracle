@@ -39,6 +39,11 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/graph") {
+    sendHtml(response, renderGraphPage());
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/health") {
     sendJson(response, 200, { status: "ok" });
     return;
@@ -124,6 +129,7 @@ function renderLandingPage(): string {
     h1 { font-size: clamp(2.25rem, 6vw, 4.5rem); margin: 0 0 16px; }
     p { color: #cbd5e1; font-size: 1.1rem; line-height: 1.7; }
     a { display: inline-block; margin-top: 20px; background: #22c55e; color: #052e16; padding: 12px 18px; border-radius: 12px; font-weight: 800; text-decoration: none; }
+    a.secondary { background: #60a5fa; color: #082f49; margin-left: 10px; }
     .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
     .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 18px; }
     @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
@@ -135,6 +141,7 @@ function renderLandingPage(): string {
       <h1>MTG Deck Oracle</h1>
       <p>Analisi Commander pensata per valutare forza, consistenza, curva, combo e piano di gioco di un mazzo con un punteggio leggibile da 0 a 100.</p>
       <a href="/rating-lab">Apri Rating Lab</a>
+      <a class="secondary" href="/graph">Vedi Grafico</a>
     </section>
     <section class="grid">
       <article class="card"><h2>Deck Analysis</h2><p>Import decklist, validazione Commander e scoring sono il cuore del prodotto.</p></article>
@@ -142,6 +149,79 @@ function renderLandingPage(): string {
       <article class="card"><h2>Rating Lab</h2><p>La raccolta dati aiuta a raffinare il valore base delle singole carte.</p></article>
     </section>
   </main>
+</body>
+</html>`;
+}
+
+function renderGraphPage(): string {
+  return `<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MTG Deck Oracle Activity Graph</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; }
+    main { max-width: 1100px; margin: 0 auto; padding: 32px; }
+    a { color: #93c5fd; }
+    .panel { background: #1e293b; border: 1px solid #334155; border-radius: 18px; padding: 20px; margin-top: 20px; }
+    .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .stat { background: #111827; border-radius: 14px; padding: 16px; }
+    .stat strong { display: block; font-size: 2rem; }
+    .chart { display: flex; align-items: end; gap: 10px; height: 320px; padding-top: 24px; overflow-x: auto; }
+    .bar-wrapper { min-width: 56px; text-align: center; color: #cbd5e1; }
+    .bar { width: 100%; min-height: 2px; border-radius: 10px 10px 0 0; background: linear-gradient(180deg, #22c55e, #16a34a); }
+    .label { font-size: 0.78rem; margin-top: 8px; }
+    .empty { color: #cbd5e1; }
+    @media (max-width: 760px) { .stats { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/">Home</a> · <a href="/rating-lab">Rating Lab</a></p>
+    <h1>Andamento Valutazioni</h1>
+    <p>Grafico dei voti raccolti nel tempo. Gli utenti sono conteggiati tramite visitor id anonimo salvato nel browser.</p>
+    <section class="stats">
+      <article class="stat"><span>Voti totali</span><strong id="totalComparisons">-</strong></article>
+      <article class="stat"><span>Visitatori distinti</span><strong id="uniqueVisitors">-</strong></article>
+    </section>
+    <section class="panel">
+      <h2>Voti per giorno</h2>
+      <div id="chart" class="chart"><p class="empty">Caricamento...</p></div>
+    </section>
+  </main>
+  <script>
+    async function loadActivity() {
+      const activity = await fetch('/api/rating-lab/activity').then((response) => response.json());
+      document.getElementById('totalComparisons').textContent = activity.totalComparisons;
+      document.getElementById('uniqueVisitors').textContent = activity.uniqueVisitors;
+      renderChart(activity.dailyComparisons);
+    }
+
+    function renderChart(days) {
+      const chart = document.getElementById('chart');
+
+      if (!days.length) {
+        chart.innerHTML = '<p class="empty">Nessuna valutazione registrata.</p>';
+        return;
+      }
+
+      const maxComparisons = Math.max(...days.map((day) => day.comparisons));
+      chart.innerHTML = days.map((day) => {
+        const height = Math.max(2, Math.round((day.comparisons / maxComparisons) * 260));
+        return '<div class="bar-wrapper" title="' + day.comparisons + ' voti, ' + day.uniqueVisitors + ' visitatori">' +
+          '<div class="bar" style="height:' + height + 'px"></div>' +
+          '<div class="label">' + escapeHtml(day.date.slice(5)) + '<br>' + day.comparisons + '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    loadActivity();
+  </script>
 </body>
 </html>`;
 }

@@ -100,7 +100,7 @@ Una volta su due prova a scegliere la seconda carta tra quelle gia' viste con ra
 
 ## Deploy
 
-La base online espone la homepage su `/`, il Rating Lab su `/rating-lab` e le API su `/api/rating-lab/*`.
+La base online espone la homepage su `/`, il Rating Lab su `/rating-lab`, il grafico attivita' su `/graph` e le API su `/api/rating-lab/*`.
 
 Per preparare il database PostgreSQL:
 
