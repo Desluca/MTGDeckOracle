@@ -32,7 +32,9 @@ POSTGRES_SSL=true
 
 ## Database
 
-Prima di usare il Rating Lab online, applica lo schema:
+Quando `DATABASE_URL` e' configurato, l'app inizializza automaticamente le tabelle PostgreSQL al primo accesso al Rating Lab.
+
+Lo schema e' comunque disponibile per controllo o setup manuale:
 
 ```bash
 psql "$DATABASE_URL" -f database/rating-lab.sql
@@ -56,8 +58,8 @@ Flusso consigliato:
 
 1. carica il repository su GitHub;
 2. crea un nuovo Blueprint su Render usando `render.yaml`;
-3. dopo la creazione del database, applica `database/rating-lab.sql`;
-4. apri l'URL generato da Render.
+3. apri l'URL generato da Render;
+4. visita `/rating-lab` per inizializzare e usare il database.
 
 Comandi usati da Render:
 
