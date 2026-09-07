@@ -97,7 +97,8 @@ In locale salva carte/confronti in `.cache/rating-lab-db.json`; in produzione us
 Ogni voto salva anche un visitor id anonimo e un timestamp, cosi' sara' possibile mostrare statistiche e grafici di attivita' nel tempo.
 All'avvio, se presente `bestcard.txt`, il server applica una seed list di rating: la prima carta parte da 2100, l'ultima da 1600, con scala lineare sulle carte deduplicate.
 
-Una volta su due prova a scegliere la seconda carta tra quelle gia' viste con rating simile alla prima, cosi' i confronti diventano progressivamente piu' utili per affinare i punteggi.
+La prima carta viene scelta al 50% tra carte sopra 1500 e al 50% tra carte sotto 1500, quando il DB ha candidati disponibili.
+La seconda carta viene scelta al 30% random e al 70% tra carte con rating simile alla prima, includendo rating uguale e un range circa +/-10%.
 
 ## Deploy
 

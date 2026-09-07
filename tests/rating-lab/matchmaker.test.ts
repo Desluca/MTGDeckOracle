@@ -26,19 +26,49 @@ describe("createCardMatch", () => {
 
   it("uses a similarly rated stored card when available", async () => {
     const store = new RatingStore(join(await createTempDir(), "ratings.json"));
-    await store.upsertCard(card("seed-a", "Seed A"));
-    await store.upsertCard(card("seed-b", "Seed B"));
-    await store.recordVote("seed-a", "seed-b", "random");
-    const source = sequenceSource([card("new", "New Card")]);
+    await store.upsertCard(card("target", "Target", 1700));
+    await store.upsertCard(card("same-rating", "Same Rating", 1700));
+    await store.upsertCard(card("outside-range", "Outside Range", 1900));
+    const source = sequenceSource([]);
 
     const match = await createCardMatch(store, source, {
       similarRatingChance: 1,
-      randomFn: () => 0,
+      randomFn: sequenceRandom([0, 0, 0, 0]),
     });
 
     expect(match.strategy).toBe("similar_rating");
-    expect(match.left.id).toBe("new");
-    expect(["seed-a", "seed-b"]).toContain(match.right.id);
+    expect(match.left.id).toBe("target");
+    expect(match.right.id).toBe("same-rating");
+  });
+
+  it("can start from the high-rated pool", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+    await store.upsertCard(card("high", "High", 1700));
+    await store.upsertCard(card("low", "Low", 1400));
+    const source = sequenceSource([card("random", "Random")]);
+
+    const match = await createCardMatch(store, source, {
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0, 0, 1]),
+    });
+
+    expect(match.left.id).toBe("high");
+    expect(match.right.id).toBe("random");
+  });
+
+  it("can start from the low-rated pool", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+    await store.upsertCard(card("high", "High", 1700));
+    await store.upsertCard(card("low", "Low", 1400));
+    const source = sequenceSource([card("random", "Random")]);
+
+    const match = await createCardMatch(store, source, {
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0.9, 0, 1]),
+    });
+
+    expect(match.left.id).toBe("low");
+    expect(match.right.id).toBe("random");
   });
 });
 
@@ -58,13 +88,28 @@ function sequenceSource(cards: readonly RatingCard[]): RandomCardSource {
   };
 }
 
-function card(id: string, name: string): RatingCard {
+function sequenceRandom(values: readonly number[]): () => number {
+  let index = 0;
+
+  return () => {
+    const value = values[index];
+
+    if (value === undefined) {
+      return 0;
+    }
+
+    index += 1;
+    return value;
+  };
+}
+
+function card(id: string, name: string, rating = 1500): RatingCard {
   return {
     id,
     name,
     typeLine: "Artifact",
     manaValue: 1,
-    rating: 1500,
+    rating,
     wins: 0,
     losses: 0,
   };
