@@ -5,6 +5,7 @@ import { summarizeRatingActivity } from "./activitySummary.js";
 import { createCardMatch } from "./matchmaker.js";
 import { createRatingStore } from "./ratingStoreFactory.js";
 import { ScryfallRandomCardSource } from "./scryfallRandomCardSource.js";
+import type { FirstCardRatingPool } from "./matchmaker.js";
 import type { MatchStrategy } from "./ratingTypes.js";
 
 const DEFAULT_PORT = 5174;
@@ -55,7 +56,9 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
   }
 
   if (request.method === "GET" && isApiPath(url.pathname, "match")) {
-    const match = await createCardMatch(store, randomCardSource);
+    const match = await createCardMatch(store, randomCardSource, {
+      firstCardRatingPool: parseFirstCardRatingPool(url.searchParams.get("firstPool")),
+    });
     sendJson(response, 200, match);
     return;
   }
@@ -104,6 +107,10 @@ function sanitizeVisitorId(visitorId: string | undefined): string | undefined {
 
   const trimmedVisitorId = visitorId.trim();
   return /^[a-zA-Z0-9_-]{8,80}$/.test(trimmedVisitorId) ? trimmedVisitorId : undefined;
+}
+
+function parseFirstCardRatingPool(value: string | null): FirstCardRatingPool {
+  return value === "weak" || value === "medium" || value === "strong" ? value : "all";
 }
 
 function sendJson(response: ServerResponse, statusCode: number, body: unknown): void {
@@ -257,8 +264,12 @@ function renderHomePage(): string {
     .meta { color: #d1d5db; min-height: 48px; }
     button { width: 100%; padding: 12px 16px; border: 0; border-radius: 12px; cursor: pointer; font-weight: 700; }
     button:hover { filter: brightness(1.1); }
+    button:disabled { cursor: default; filter: grayscale(0.7) brightness(0.75); opacity: 0.65; }
     .vote { background: #22c55e; color: #052e16; }
     .next { width: auto; background: #60a5fa; color: #082f49; margin-top: 16px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+    .filter { width: auto; background: #334155; color: #f8fafc; }
+    .filter.active { background: #facc15; color: #422006; }
     .status { color: #9ca3af; margin-top: 16px; }
     @media (max-width: 760px) { .cards { grid-template-columns: 1fr; } }
   </style>
@@ -268,6 +279,12 @@ function renderHomePage(): string {
     <h1>MTG Deck Oracle Rating Lab</h1>
     <p>Scegli quale carta ritieni piu' forte. Ogni voto aggiorna un rating Elo salvato nel database.</p>
     <p id="strategy" class="status">Caricamento...</p>
+    <div class="filters" aria-label="Filtro rating prima carta">
+      <button class="filter" data-pool="weak" onclick="setFirstPool('weak')">scarse</button>
+      <button class="filter" data-pool="medium" onclick="setFirstPool('medium')">meh</button>
+      <button class="filter" data-pool="strong" onclick="setFirstPool('strong')">forti</button>
+      <button class="filter active" data-pool="all" onclick="setFirstPool('all')" disabled>tutte</button>
+    </div>
     <section class="cards">
       <article class="card" id="left"></article>
       <article class="card" id="right"></article>
@@ -277,15 +294,30 @@ function renderHomePage(): string {
   </main>
   <script>
     const visitorId = getOrCreateVisitorId();
+    let currentFirstPool = 'all';
     let currentMatch = null;
 
     async function loadMatch() {
       document.getElementById('strategy').textContent = 'Caricamento...';
-      currentMatch = await fetch('/api/rating-lab/match').then((response) => response.json());
+      currentMatch = await fetch('/api/rating-lab/match?firstPool=' + encodeURIComponent(currentFirstPool)).then((response) => response.json());
       document.getElementById('strategy').textContent = 'Strategia match: ' + currentMatch.strategy;
       renderCard('left', currentMatch.left, currentMatch.right);
       renderCard('right', currentMatch.right, currentMatch.left);
       loadStats();
+    }
+
+    function setFirstPool(firstPool) {
+      currentFirstPool = firstPool;
+      updateFilterButtons();
+      loadMatch();
+    }
+
+    function updateFilterButtons() {
+      document.querySelectorAll('.filter').forEach((button) => {
+        const isActive = button.dataset.pool === currentFirstPool;
+        button.classList.toggle('active', isActive);
+        button.disabled = isActive;
+      });
     }
 
     function renderCard(elementId, card, opponent) {

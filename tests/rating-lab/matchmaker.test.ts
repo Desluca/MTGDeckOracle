@@ -85,6 +85,34 @@ describe("createCardMatch", () => {
     expect(match.left.id).toBe("baseline");
     expect(match.right.id).toBe("random");
   });
+
+  it("can force the first card from weak, medium, or strong pools", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+    await store.upsertCard(card("weak", "Weak", 1499));
+    await store.upsertCard(card("medium", "Medium", 1600));
+    await store.upsertCard(card("strong", "Strong", 1701));
+    const source = sequenceSource([card("random-a", "Random A"), card("random-b", "Random B"), card("random-c", "Random C")]);
+
+    const weakMatch = await createCardMatch(store, source, {
+      firstCardRatingPool: "weak",
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0, 0, 1]),
+    });
+    const mediumMatch = await createCardMatch(store, source, {
+      firstCardRatingPool: "medium",
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0, 0, 1]),
+    });
+    const strongMatch = await createCardMatch(store, source, {
+      firstCardRatingPool: "strong",
+      similarRatingChance: 0,
+      randomFn: sequenceRandom([0, 0, 1]),
+    });
+
+    expect(weakMatch.left.id).toBe("weak");
+    expect(mediumMatch.left.id).toBe("medium");
+    expect(strongMatch.left.id).toBe("strong");
+  });
 });
 
 function sequenceSource(cards: readonly RatingCard[]): RandomCardSource {

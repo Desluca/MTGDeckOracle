@@ -99,6 +99,7 @@ All'avvio, se presente `bestcard.txt`, il server applica una seed list di rating
 
 La prima carta viene scelta al 50% tra carte con rating sopra 1500 e al 50% tra carte con rating 1500 o inferiore, quando il DB ha candidati disponibili.
 La seconda carta viene scelta al 30% random e al 70% tra carte con rating simile alla prima, includendo rating uguale e un range circa +/-10%.
+I pulsanti `scarse`, `meh`, `forti` e `tutte` sopra le carte permettono di forzare la fascia della prima carta: scarse sotto 1500, meh da 1500 a 1700, forti sopra 1700, tutte con logica automatica.
 
 ## Deploy
 
