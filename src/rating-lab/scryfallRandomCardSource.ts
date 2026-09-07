@@ -49,7 +49,10 @@ export class ScryfallRandomCardSource implements RandomCardSource {
   }
 
   async getRandomCard(): Promise<RatingCard> {
-    const response = await this.fetchFn(`${this.apiBaseUrl}/cards/random`, {
+    const randomSearchParams = new URLSearchParams({
+      q: "legal:commander",
+    });
+    const response = await this.fetchFn(`${this.apiBaseUrl}/cards/random?${randomSearchParams.toString()}`, {
       headers: SCRYFALL_HEADERS,
     });
 

@@ -29,7 +29,7 @@ describe("ScryfallRandomCardSource", () => {
     expect(card.rating).toBe(1500);
     expect(card.imageUrl).toBe("https://example.com/oldest.jpg");
     expect(fetchFn).toHaveBeenCalledWith(
-      "https://api.scryfall.com/cards/random",
+      "https://api.scryfall.com/cards/random?q=legal%3Acommander",
       expect.objectContaining({
         headers: expect.objectContaining({
           Accept: "application/json",

@@ -92,7 +92,7 @@ Poi apri:
 http://localhost:5174
 ```
 
-Il rating lab usa Scryfall per pescare carte random e aggiorna i punteggi con Elo.
+Il rating lab usa Scryfall per pescare carte random legali in Commander e aggiorna i punteggi con Elo.
 In locale salva carte/confronti in `.cache/rating-lab-db.json`; in produzione usa PostgreSQL tramite `DATABASE_URL`.
 Ogni voto salva anche un visitor id anonimo e un timestamp, cosi' sara' possibile mostrare statistiche e grafici di attivita' nel tempo.
 
