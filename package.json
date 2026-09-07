@@ -1,0 +1,35 @@
+{
+  "name": "mtg-deck-oracle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Commander deck analysis and scoring engine.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "tsx src/index.ts",
+    "analyze": "tsx src/cli/analyzeDeck.ts",
+    "rating-lab": "tsx src/rating-lab/server.ts",
+    "start": "node dist/src/rating-lab/server.js"
+  },
+  "keywords": [
+    "mtg",
+    "commander",
+    "edh",
+    "deck-analysis",
+    "typescript"
+  ],
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.7"
+  },
+  "dependencies": {
+    "pg": "^8.23.0"
+  }
+}
