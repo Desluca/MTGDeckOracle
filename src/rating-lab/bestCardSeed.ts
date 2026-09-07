@@ -6,8 +6,7 @@ import type { RatingStore } from "./ratingStore.js";
 import type { RatingCardSeed } from "./ratingTypes.js";
 
 const BEST_CARD_SEED_NAME = "bestcard";
-const MAX_SEED_RATING = 2100;
-const MIN_SEED_RATING = 1600;
+const BEST_CARD_SEED_RATING = 1600;
 
 export interface BestCardSeedResult {
   readonly applied: boolean;
@@ -44,20 +43,11 @@ export async function applyBestCardRatingSeed(store: RatingStore, filePath = joi
 export function parseBestCardRanking(rawRanking: string): readonly RatingCardSeed[] {
   const cardNames = dedupePreservingOrder(rawRanking.split(/\r?\n/).map((line) => line.trim()).filter(isLikelyCardName));
 
-  return cardNames.map((name, index) => ({
+  return cardNames.map((name) => ({
     normalizedName: normalizeSeedLookupName(name),
     name,
-    rating: scaledRating(index, cardNames.length),
+    rating: BEST_CARD_SEED_RATING,
   }));
-}
-
-function scaledRating(index: number, totalCards: number): number {
-  if (totalCards <= 1) {
-    return MAX_SEED_RATING;
-  }
-
-  const step = (MAX_SEED_RATING - MIN_SEED_RATING) / (totalCards - 1);
-  return Math.round(MAX_SEED_RATING - index * step);
 }
 
 function dedupePreservingOrder(values: readonly string[]): readonly string[] {

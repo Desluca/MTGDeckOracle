@@ -20,12 +20,12 @@ Swords to Plowshares
       {
         normalizedName: "sol ring",
         name: "Sol Ring",
-        rating: 2100,
+        rating: 1600,
       },
       {
         normalizedName: "arcane signet",
         name: "Arcane Signet",
-        rating: 1850,
+        rating: 1600,
       },
       {
         normalizedName: "swords to plowshares",
