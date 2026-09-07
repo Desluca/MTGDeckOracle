@@ -28,8 +28,16 @@ interface ScryfallRandomCard {
   }[];
 }
 
+interface ScryfallSearchResponse {
+  readonly data?: readonly ScryfallRandomCard[];
+}
+
 const DEFAULT_API_BASE_URL = "https://api.scryfall.com";
 const DEFAULT_RATING = 1500;
+const SCRYFALL_HEADERS = {
+  Accept: "application/json",
+  "User-Agent": "MTGDeckOracle/0.1.0",
+} as const;
 
 export class ScryfallRandomCardSource implements RandomCardSource {
   private readonly apiBaseUrl: string;
@@ -42,17 +50,40 @@ export class ScryfallRandomCardSource implements RandomCardSource {
 
   async getRandomCard(): Promise<RatingCard> {
     const response = await this.fetchFn(`${this.apiBaseUrl}/cards/random`, {
-      headers: {
-        Accept: "application/json",
-        "User-Agent": "MTGDeckOracle/0.1.0",
-      },
+      headers: SCRYFALL_HEADERS,
     });
 
     if (!response.ok) {
       throw new Error(`Scryfall random card request failed with ${response.status} ${response.statusText}`);
     }
 
-    return mapScryfallRandomCard((await response.json()) as ScryfallRandomCard);
+    const randomCard = (await response.json()) as ScryfallRandomCard;
+    const oldestPrinting = await this.findOldestPrinting(randomCard);
+
+    return mapScryfallRandomCard(oldestPrinting ?? randomCard);
+  }
+
+  private async findOldestPrinting(card: ScryfallRandomCard): Promise<ScryfallRandomCard | undefined> {
+    if (!card.oracle_id) {
+      return undefined;
+    }
+
+    const searchParams = new URLSearchParams({
+      order: "released",
+      dir: "asc",
+      unique: "prints",
+      q: `oracleid:${card.oracle_id}`,
+    });
+    const response = await this.fetchFn(`${this.apiBaseUrl}/cards/search?${searchParams.toString()}`, {
+      headers: SCRYFALL_HEADERS,
+    });
+
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const searchResult = (await response.json()) as ScryfallSearchResponse;
+    return searchResult.data?.find((printing) => imageUrl(printing));
   }
 }
 
