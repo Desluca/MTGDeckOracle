@@ -9,7 +9,7 @@ export interface ScryfallRandomCardSourceOptions {
   readonly fetchFn?: typeof fetch;
 }
 
-interface ScryfallRandomCard {
+export interface ScryfallRandomCard {
   readonly id: string;
   readonly oracle_id?: string;
   readonly name: string;

@@ -3,7 +3,9 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { applyConfiguredRatingSeeds } from "./bestCardSeed.js";
 import { summarizeRatingActivity } from "./activitySummary.js";
 import { createCardMatch } from "./matchmaker.js";
+import { enrichLeaderboardCards } from "./leaderboardEnrichment.js";
 import { createRatingStore } from "./ratingStoreFactory.js";
+import { ScryfallRatingCardDetailsSource } from "./scryfallRatingCardDetailsSource.js";
 import { ScryfallRandomCardSource } from "./scryfallRandomCardSource.js";
 import type { FirstCardRatingPool } from "./matchmaker.js";
 import type { MatchStrategy } from "./ratingTypes.js";
@@ -12,6 +14,7 @@ const DEFAULT_PORT = 5174;
 
 const store = createRatingStore();
 const randomCardSource = new ScryfallRandomCardSource();
+const ratingCardDetailsSource = new ScryfallRatingCardDetailsSource();
 const seedResults = await applyConfiguredRatingSeeds(store);
 
 const server = createServer(async (request, response) => {
@@ -103,7 +106,11 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
   if (request.method === "GET" && isApiPath(url.pathname, "leaderboard")) {
     const page = parsePositiveInteger(url.searchParams.get("page"), 1);
     const pageSize = Math.min(parsePositiveInteger(url.searchParams.get("pageSize"), 100), 100);
-    sendJson(response, 200, await store.findLeaderboardCards(page, pageSize));
+    const leaderboard = await store.findLeaderboardCards(page, pageSize);
+    sendJson(response, 200, {
+      ...leaderboard,
+      cards: await enrichLeaderboardCards(store, ratingCardDetailsSource, leaderboard.cards),
+    });
     return;
   }
 
