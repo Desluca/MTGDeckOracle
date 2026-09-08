@@ -285,11 +285,16 @@ function renderLeaderboardPage(): string {
     <p class="status">Mostra 100 carte per pagina per caricare velocemente le immagini.</p>
     <div class="actions">
       <a class="button" href="/rating-lab">Torna al Rating Lab</a>
-      <button id="previous" onclick="changePage(-1)">Pagina precedente</button>
-      <button id="next" onclick="changePage(1)">Pagina successiva</button>
+      <button class="previous" onclick="changePage(-1)">Pagina precedente</button>
+      <button class="next-page" onclick="changePage(1)">Pagina successiva</button>
     </div>
     <p id="pageInfo" class="status">Caricamento...</p>
     <section id="leaderboard" class="grid"></section>
+    <div class="actions">
+      <a class="button" href="/rating-lab">Torna al Rating Lab</a>
+      <button class="previous" onclick="changePage(-1)">Pagina precedente</button>
+      <button class="next-page" onclick="changePage(1)">Pagina successiva</button>
+    </div>
   </main>
   <script>
     const pageSize = 100;
@@ -301,8 +306,8 @@ function renderLeaderboardPage(): string {
       currentPage = leaderboard.page;
       totalPages = leaderboard.totalPages;
       document.getElementById('pageInfo').textContent = 'Pagina ' + leaderboard.page + ' di ' + leaderboard.totalPages + ' | Carte totali: ' + leaderboard.totalCards;
-      document.getElementById('previous').disabled = leaderboard.page <= 1;
-      document.getElementById('next').disabled = leaderboard.page >= leaderboard.totalPages;
+      document.querySelectorAll('.previous').forEach((button) => { button.disabled = leaderboard.page <= 1; });
+      document.querySelectorAll('.next-page').forEach((button) => { button.disabled = leaderboard.page >= leaderboard.totalPages; });
       renderCards(leaderboard.cards);
       history.replaceState(null, '', '/leaderboard?page=' + leaderboard.page);
     }
