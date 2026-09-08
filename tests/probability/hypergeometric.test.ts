@@ -15,8 +15,14 @@ describe("hypergeometricAtLeastOne", () => {
     expect(hypergeometricAtLeastOne(100, 10, 10)).toBeCloseTo(0.6695, 4);
   });
 
-  it("returns one when draws exceed all misses", () => {
-    expect(hypergeometricAtLeastOne(10, 2, 9)).toBe(1);
+  it("returns zero when draws, successes or population are empty", () => {
+    expect(hypergeometricAtLeastOne(0, 10, 10)).toBe(0);
+    expect(hypergeometricAtLeastOne(100, 10, 0)).toBe(0);
+    expect(hypergeometricAtLeastOne(-5, 10, 10)).toBe(0);
+  });
+
+  it("returns one when the whole library is drawn", () => {
+    expect(hypergeometricAtLeastOne(20, 3, 20)).toBe(1);
   });
 });
 
@@ -29,7 +35,8 @@ describe("consistencyMultiplier", () => {
     expect(consistencyMultiplier(200)).toBeCloseTo(0.3789, 4);
   });
 
-  it("uses custom baselines", () => {
-    expect(consistencyMultiplier(200, 200)).toBe(1);
+  it("does not penalize decks smaller than the baseline", () => {
+    expect(consistencyMultiplier(80)).toBe(1);
+    expect(consistencyMultiplier(0)).toBe(0);
   });
 });

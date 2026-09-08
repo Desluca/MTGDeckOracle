@@ -113,30 +113,101 @@ describe("evaluateCardContribution", () => {
   });
 
   it("lets a spellslinger commander support a larger instant-sorcery package", () => {
-    const spellslingerDeck = createResolvedTestDeck({
-      commanders: [
-        createTestCard({
-          name: "Mizzix of the Izmagnus",
-          canBeCommander: true,
-          typeLine: "Legendary Creature — Goblin Wizard",
-          oracleText: "Whenever you cast an instant or sorcery spell with mana value greater than the number of experience counters you have, you get an experience counter.",
-        }),
-      ],
-      mainboard: [
-        mainboardCard(createTestCard({ name: "Storm Payoff", functionalTags: ["spellslinger"], basePowerRating: 6 }), 12),
-        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
-      ],
-    });
-    const genericCommanderDeck = createResolvedTestDeck({
-      mainboard: [
-        mainboardCard(createTestCard({ name: "Storm Payoff", functionalTags: ["spellslinger"], basePowerRating: 6 }), 12),
-        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
-      ],
+    const { themed, generic } = packageDecks({
+      commanderName: "Mizzix of the Izmagnus",
+      commanderOracleText: "Whenever you cast an instant or sorcery spell, you get an experience counter.",
+      packageTag: "spellslinger",
+      packageCount: 12,
     });
 
-    const spellslingerContribution = evaluateCardContribution(spellslingerDeck.cards[1]!, spellslingerDeck.cards);
-    const genericContribution = evaluateCardContribution(genericCommanderDeck.cards[1]!, genericCommanderDeck.cards);
+    expect(evaluateCardContribution(themed.cards[1]!, themed.cards).contextualValue).toBeGreaterThan(
+      evaluateCardContribution(generic.cards[1]!, generic.cards).contextualValue,
+    );
+  });
 
-    expect(spellslingerContribution.contextualValue).toBeGreaterThan(genericContribution.contextualValue);
+  it.each([
+    {
+      commanderName: "Adeline, Resplendent Cathar",
+      commanderOracleText: "Whenever you attack, create X 1/1 white Human creature tokens.",
+      packageTag: "token_synergy" as const,
+    },
+    {
+      commanderName: "Heliod, Sun-Crowned",
+      commanderOracleText: "Lifelink. Whenever you gain life, put a +1/+1 counter on target creature.",
+      packageTag: "lifegain" as const,
+    },
+    {
+      commanderName: "Teysa, Orzhov Scion",
+      commanderOracleText: "Sacrifice three white creatures: Exile target creature.",
+      packageTag: "aristocrats" as const,
+    },
+    {
+      commanderName: "Atraxa, Praetors' Voice",
+      commanderOracleText: "At the beginning of your end step, proliferate.",
+      packageTag: "counters_synergy" as const,
+    },
+    {
+      commanderName: "Sythis, Harvest's Hand",
+      commanderOracleText: "Enchantments you control have hexproof.",
+      packageTag: "enchantment_synergy" as const,
+    },
+    {
+      commanderName: "Ardenn, Intrepid Archaeologist",
+      commanderOracleText: "You may attach any number of Equipment you control to target creature.",
+      packageTag: "equipment_synergy" as const,
+    },
+    {
+      commanderName: "Krenko, Mob Boss",
+      commanderTypeLine: "Legendary Creature — Goblin Warrior",
+      commanderOracleText: "Goblins you control get +1/+0.",
+      commanderTags: ["tribal_synergy" as const],
+      packageTag: "tribal_synergy" as const,
+    },
+  ])("lets $commanderName support a larger $packageTag package", ({ commanderName, commanderOracleText, packageTag, ...rest }) => {
+    const { themed, generic } = packageDecks({
+      commanderName,
+      commanderOracleText,
+      packageTag,
+      packageCount: 12,
+      ...("commanderTypeLine" in rest ? { commanderTypeLine: rest.commanderTypeLine } : {}),
+      ...("commanderTags" in rest ? { commanderTags: rest.commanderTags } : {}),
+    });
+
+    expect(evaluateCardContribution(themed.cards[1]!, themed.cards).contextualValue).toBeGreaterThan(
+      evaluateCardContribution(generic.cards[1]!, generic.cards).contextualValue,
+    );
   });
 });
+
+function packageDecks(options: {
+  readonly commanderName: string;
+  readonly commanderOracleText: string;
+  readonly packageTag: "token_synergy" | "lifegain" | "aristocrats" | "counters_synergy" | "enchantment_synergy" | "equipment_synergy" | "tribal_synergy" | "spellslinger";
+  readonly packageCount: number;
+  readonly commanderTypeLine?: string;
+  readonly commanderTags?: readonly ("tribal_synergy")[];
+}) {
+  const themed = createResolvedTestDeck({
+    commanders: [
+      createTestCard({
+        name: options.commanderName,
+        canBeCommander: true,
+        typeLine: options.commanderTypeLine ?? "Legendary Creature — Test",
+        oracleText: options.commanderOracleText,
+        functionalTags: options.commanderTags ?? [],
+      }),
+    ],
+    mainboard: [
+      mainboardCard(createTestCard({ name: "Package Payoff", functionalTags: [options.packageTag], basePowerRating: 6 }), options.packageCount),
+      mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 99 - options.packageCount),
+    ],
+  });
+  const generic = createResolvedTestDeck({
+    mainboard: [
+      mainboardCard(createTestCard({ name: "Package Payoff", functionalTags: [options.packageTag], basePowerRating: 6 }), options.packageCount),
+      mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 99 - options.packageCount),
+    ],
+  });
+
+  return { themed, generic };
+}

@@ -147,6 +147,34 @@ describe("scoreCommanderDeck", () => {
 
     expect(withProviderCardQuality).toBeGreaterThan(withoutProviderCardQuality);
   });
+
+  it("scores a land-only list as having no game plan", () => {
+    const score = scoreCommanderDeck({
+      deck: createResolvedTestDeck({
+        mainboard: [mainboardCard(createTestCard({ name: "Island", types: ["land"], typeLine: "Basic Land — Island" }), 99)],
+      }),
+      legality: legalReport(),
+    });
+
+    expect(score.components.find((component) => component.category === "game_plan")?.rawScore).toBe(0);
+  });
+
+  it("never returns a score below zero", () => {
+    const score = scoreCommanderDeck({
+      deck: createResolvedTestDeck(),
+      legality: {
+        isLegal: false,
+        legalityCap: 0,
+        issues: [
+          { code: "missing_commander", severity: "blocking", message: "Missing commander." },
+          { code: "invalid_deck_size", severity: "blocking", message: "Too small." },
+        ],
+      },
+    });
+
+    expect(score.finalScore).toBeGreaterThanOrEqual(0);
+    expect(score.commanderBracket).toBe(1);
+  });
 });
 
 function createBalancedDeck() {

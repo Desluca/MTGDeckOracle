@@ -12,6 +12,11 @@ describe("normalizeExternalTagLabel", () => {
     expect(normalizeExternalTagLabel("Graveyard")).toBe("graveyard_synergy");
     expect(normalizeExternalTagLabel("Board Wipes")).toBe("board_wipe");
     expect(normalizeExternalTagLabel("fast-mana")).toBe("fast_mana");
+    expect(normalizeExternalTagLabel("Tokens")).toBe("token_synergy");
+    expect(normalizeExternalTagLabel("Enchantress")).toBe("enchantment_synergy");
+    expect(normalizeExternalTagLabel("Voltron")).toBe("equipment_synergy");
+    expect(normalizeExternalTagLabel("Aristocrats")).toBe("aristocrats");
+    expect(normalizeExternalTagLabel("unknown-hub-label")).toBeUndefined();
   });
 });
 
@@ -24,6 +29,14 @@ describe("InMemoryCardTagProvider", () => {
     const tagsByName = await provider.findTagsByNames(["reanimate"]);
 
     expect(tagsByName.get("reanimate")).toEqual(["graveyard_synergy", "recursion"]);
+  });
+
+  it("ignores unknown hub labels", async () => {
+    const provider = new InMemoryCardTagProvider([{ name: "Sol Ring", tags: ["Definitely Not A Tag", "Fast Mana"] }]);
+
+    const tagsByName = await provider.findTagsByNames(["sol ring"]);
+
+    expect(tagsByName.get("sol ring")).toEqual(["fast_mana"]);
   });
 
   it("preserves tag evidence source and confidence", async () => {
@@ -66,6 +79,22 @@ describe("FileCardTagProvider", () => {
       const tagsByName = await provider.findTagsByNames(["skullclamp"]);
 
       expect(tagsByName.get("skullclamp")).toEqual(["card_draw", "value_engine"]);
+    } finally {
+      await rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  it("loads a dictionary-shaped tag file", async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), "mtg-deck-oracle-tags-dict-"));
+    const tagFile = join(tempDir, "tags.json");
+
+    await writeFile(tagFile, JSON.stringify({ "Rhystic Study": ["Card Draw", "Stax"] }), "utf8");
+
+    try {
+      const provider = new FileCardTagProvider(tagFile);
+      const tagsByName = await provider.findTagsByNames(["rhystic study"]);
+
+      expect(tagsByName.get("rhystic study")).toEqual(["card_draw", "stax"]);
     } finally {
       await rm(tempDir, { recursive: true, force: true });
     }

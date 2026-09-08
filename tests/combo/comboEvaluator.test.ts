@@ -102,6 +102,48 @@ describe("evaluateDetectedCombo", () => {
       evaluateDetectedCombo(detectedWin, deck).impactScore,
     );
   });
+
+  it("keeps commander role none when the commander is unrelated", () => {
+    const combo = createCombo();
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Piece A" })),
+        mainboardCard(createTestCard({ name: "Piece B" })),
+      ],
+    });
+    const detected = detectCombo(combo, new Set(["piece a", "piece b"]));
+
+    expect(evaluateDetectedCombo(detected, deck).commanderRole).toBe("none");
+  });
+
+  it("scores missing key pieces below partial combos", () => {
+    const combo = createCombo();
+    const deck = createResolvedTestDeck({
+      mainboard: [mainboardCard(createTestCard({ name: "Unrelated Card" }))],
+    });
+    const missing = detectCombo(combo, new Set());
+    const partial = detectCombo(combo, new Set(["piece a"]));
+
+    expect(missing.completeness).toBe("missing_key_piece");
+    expect(evaluateDetectedCombo(missing, deck).impactScore).toBeLessThan(evaluateDetectedCombo(partial, deck).impactScore);
+  });
+
+  it("scores locks below game-winning combos but above generic value", () => {
+    const winningCombo = createCombo({ id: "win", outcomes: ["wins_game"] });
+    const lockCombo = createCombo({ id: "lock", outcomes: ["lock"] });
+    const valueCombo = createCombo({ id: "value", outcomes: ["value_engine"] });
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Piece A" })),
+        mainboardCard(createTestCard({ name: "Piece B" })),
+      ],
+    });
+    const names = new Set(["piece a", "piece b"]);
+
+    const lockScore = evaluateDetectedCombo(detectCombo(lockCombo, names), deck).impactScore;
+    expect(lockScore).toBeLessThan(evaluateDetectedCombo(detectCombo(winningCombo, names), deck).impactScore);
+    expect(lockScore).toBeGreaterThan(evaluateDetectedCombo(detectCombo(valueCombo, names), deck).impactScore);
+  });
 });
 
 function createCombo(overrides: Partial<KnownCombo> = {}): KnownCombo {

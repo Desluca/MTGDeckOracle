@@ -47,6 +47,23 @@ describe("recommendDeckImprovements", () => {
     expect(recommendations).toContainEqual(expect.objectContaining({ category: "interaction" }));
   });
 
+  it("recommends card advantage and win conditions when those packages are missing", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Plains" }), 37),
+        mainboardCard(createTestCard({ name: "Ramp", functionalTags: ["ramp"] }), 10),
+        mainboardCard(createTestCard({ name: "Removal", functionalTags: ["spot_removal"] }), 8),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 2 }), 44),
+      ],
+    });
+
+    const recommendations = recommendDeckImprovements(deck, analyzeDeckStructure(deck));
+
+    expect(recommendations.map((recommendation) => recommendation.category)).toEqual(
+      expect.arrayContaining(["card_advantage", "win_conditions"]),
+    );
+  });
+
   it("suggests expensive cards as cuts for high curves", () => {
     const deck = createResolvedTestDeck({
       mainboard: [

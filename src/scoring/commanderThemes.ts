@@ -17,6 +17,7 @@ interface CommanderThemeRule {
   readonly targetId: string;
   readonly commanderTags: readonly FunctionalTag[];
   readonly oracleHints: readonly string[];
+  readonly oracleMatcher?: (oracleText: string) => boolean;
 }
 
 const THEME_RULES: readonly CommanderThemeRule[] = [
@@ -36,7 +37,8 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     theme: "tokens",
     targetId: "tokens",
     commanderTags: ["token_synergy"],
-    oracleHints: ["token"],
+    oracleHints: [],
+    oracleMatcher: mentionsTokenWord,
   },
   {
     theme: "spellslinger",
@@ -48,13 +50,15 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     theme: "lifegain",
     targetId: "lifegain",
     commanderTags: ["lifegain"],
-    oracleHints: ["you gain", "life you gained", "lifelink"],
+    oracleHints: ["lifelink", "life you gained", "life you gain"],
+    oracleMatcher: (oracleText) => oracleText.includes("you gain") && oracleText.includes("life"),
   },
   {
     theme: "aristocrats",
     targetId: "aristocrats",
     commanderTags: ["aristocrats"],
     oracleHints: ["sacrifice a creature", "whenever a creature you control dies", "whenever you sacrifice"],
+    oracleMatcher: (oracleText) => oracleText.includes("sacrifice") && oracleText.includes("creature"),
   },
   {
     theme: "counters",
@@ -72,7 +76,8 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     theme: "equipment",
     targetId: "equipment",
     commanderTags: ["equipment_synergy"],
-    oracleHints: ["equipped creature", "equipment you control", "attach"],
+    oracleHints: ["equipped creature", "equipment you control"],
+    oracleMatcher: (oracleText) => /\bequip\b/.test(oracleText),
   },
   {
     theme: "tribal",
@@ -91,7 +96,11 @@ export function inferCommanderThemes(deckCards: readonly DeckCard[]): readonly C
     const tags = commander.card.evaluation.functionalTags;
 
     for (const rule of THEME_RULES) {
-      if (rule.commanderTags.some((tag) => tags.includes(tag)) || rule.oracleHints.some((hint) => oracleText.includes(hint))) {
+      if (
+        rule.commanderTags.some((tag) => tags.includes(tag)) ||
+        rule.oracleHints.some((hint) => oracleText.includes(hint)) ||
+        rule.oracleMatcher?.(oracleText)
+      ) {
         themes.add(rule.theme);
       }
     }
@@ -117,4 +126,8 @@ export function mentionsCreatureType(text: string, subtype: string): boolean {
   const lower = subtype.toLowerCase();
   const plural = lower.endsWith("f") ? `${lower.slice(0, -1)}ves` : `${lower}s`;
   return text.includes(lower) || text.includes(plural);
+}
+
+function mentionsTokenWord(oracleText: string): boolean {
+  return /\btokens?\b/.test(oracleText);
 }

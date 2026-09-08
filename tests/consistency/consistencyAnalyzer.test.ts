@@ -40,4 +40,32 @@ describe("analyzeConsistency", () => {
 
     expect(analyzeConsistency(twoHundredCardDeck).sizeMultiplier).toBeLessThan(analyzeConsistency(hundredCardDeck).sizeMultiplier);
   });
+
+  it("reports no land access when the deck has no lands", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [mainboardCard(createTestCard({ name: "Spell", manaValue: 2 }), 99)],
+    });
+
+    const analysis = analyzeConsistency(deck);
+    const landAccess = analysis.signals.find((signal) => signal.name === "early_land_access");
+
+    expect(landAccess?.probability).toBe(0);
+  });
+
+  it("counts combo payoffs as win-condition access", () => {
+    const withPayoff = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Island" }), 37),
+        mainboardCard(createTestCard({ name: "Payoff", functionalTags: ["combo_payoff"] }), 4),
+      ],
+    });
+    const withoutPayoff = createResolvedTestDeck({
+      mainboard: [mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Island" }), 37)],
+    });
+
+    const withPayoffAccess = analyzeConsistency(withPayoff).signals.find((signal) => signal.name === "win_condition_access")?.probability ?? 0;
+    const withoutPayoffAccess = analyzeConsistency(withoutPayoff).signals.find((signal) => signal.name === "win_condition_access")?.probability ?? 0;
+
+    expect(withPayoffAccess).toBeGreaterThan(withoutPayoffAccess);
+  });
 });

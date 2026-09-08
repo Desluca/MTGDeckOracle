@@ -55,7 +55,7 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("artifact_synergy");
   }
 
-  if (oracleText.includes("create") && oracleText.includes("token")) {
+  if (mentionsCreatedToken(oracleText)) {
     tags.add("token_synergy");
   }
 
@@ -296,6 +296,10 @@ function applyCommanderTribalTags(deckCards: DeckList["cards"]): DeckList["cards
       },
     };
   });
+}
+
+function mentionsCreatedToken(oracleText: string): boolean {
+  return oracleText.includes("create") && /\btokens?\b/.test(oracleText);
 }
 
 function mentionsCreatureType(text: string, subtype: string): boolean {
