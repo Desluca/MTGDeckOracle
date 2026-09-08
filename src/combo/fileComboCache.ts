@@ -4,19 +4,35 @@ import { dirname } from "node:path";
 import type { KnownCombo } from "../domain/index.js";
 import type { ComboCache } from "./comboCache.js";
 
-interface SerializedComboCache {
+export interface SerializedComboCache {
   readonly catalog?: readonly KnownCombo[];
   readonly byCard?: Record<string, readonly KnownCombo[]>;
+}
+
+export interface FileComboCacheOptions {
+  readonly seed?: SerializedComboCache;
+  readonly useSeedCatalog?: boolean;
 }
 
 export class FileComboCache implements ComboCache {
   private memory: SerializedComboCache | undefined;
 
-  constructor(private readonly cacheFilePath: string) {}
+  constructor(
+    private readonly cacheFilePath: string,
+    private readonly options: FileComboCacheOptions = {},
+  ) {}
 
   async getCatalog(): Promise<readonly KnownCombo[] | undefined> {
     const cache = await this.readCache();
-    return cache.catalog && cache.catalog.length > 0 ? cache.catalog : undefined;
+    if (cache.catalog && cache.catalog.length > 0) {
+      return cache.catalog;
+    }
+
+    if (this.options.useSeedCatalog && this.options.seed?.catalog && this.options.seed.catalog.length > 0) {
+      return this.options.seed.catalog;
+    }
+
+    return undefined;
   }
 
   async setCatalog(combos: readonly KnownCombo[]): Promise<void> {
@@ -36,7 +52,7 @@ export class FileComboCache implements ComboCache {
     const missing: string[] = [];
 
     for (const normalizedName of normalizedNames) {
-      const combos = cache.byCard?.[normalizedName];
+      const combos = cache.byCard?.[normalizedName] ?? this.options.seed?.byCard?.[normalizedName];
       if (combos) {
         found.set(normalizedName, combos);
       } else {

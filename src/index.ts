@@ -12,6 +12,7 @@ export * from "./consistency/index.js";
 export * from "./deck/index.js";
 export * from "./explanation/index.js";
 export * from "./parser/index.js";
+export * from "./pipeline/index.js";
 export * from "./probability/index.js";
 export * from "./recommendations/index.js";
 export * from "./report/index.js";

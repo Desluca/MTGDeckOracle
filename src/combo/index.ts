@@ -6,3 +6,4 @@ export * from "./comboDetector.js";
 export * from "./comboEvaluator.js";
 export * from "./fileComboCache.js";
 export * from "./inMemoryComboDataSource.js";
+export * from "./knownComboSeed.js";

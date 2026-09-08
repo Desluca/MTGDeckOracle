@@ -75,6 +75,16 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(card)).toContain("protection");
   });
 
+  it("tags shroud as protection", () => {
+    const card = createTestCard({
+      name: "Lightning Greaves",
+      typeLine: "Artifact — Equipment",
+      oracleText: "Equipped creature has haste and shroud.",
+    });
+
+    expect(inferFunctionalTags(card)).toContain("protection");
+  });
+
   it("tags graveyard synergy", () => {
     const card = createTestCard({ name: "Graveyard Engine", oracleText: "Whenever one or more creature cards leave your graveyard, draw a card." });
 

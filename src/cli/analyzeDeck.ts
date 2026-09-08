@@ -1,93 +1,52 @@
 import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { analyzeDeckStructure } from "../analysis/index.js";
 import { CachedCardDataSource, FileCardCache, ScryfallCardDataSource } from "../card-data/index.js";
 import { parseAnalyzeDeckCliOptions } from "./cliOptions.js";
-import { CommanderSpellbookComboDataProvider, FileComboCache, detectDeckCombos, evaluateDetectedCombos } from "../combo/index.js";
-import { analyzeConsistency } from "../consistency/index.js";
-import { resolveDeckList } from "../deck/index.js";
-import { generateDeckScoreExplanation } from "../explanation/index.js";
-import { parseDeckList } from "../parser/index.js";
+import { CommanderSpellbookComboDataProvider, FileComboCache, createComboSeedCache } from "../combo/index.js";
+import { analyzeCommanderDeck } from "../pipeline/index.js";
 import { createRatingStore } from "../rating-lab/index.js";
 import { loadCardRatingProviderFromRatingStore } from "../ratings/index.js";
-import { recommendDeckImprovements } from "../recommendations/index.js";
 import { renderReport } from "../report/index.js";
-import { scoreCommanderDeck } from "../scoring/index.js";
-import { createComboTagsByName, FileCardTagProvider, tagDeckCards, tagDeckCardsWithProvider } from "../tagging/index.js";
-import { validateCommanderDeck } from "../validation/index.js";
+import { FileCardTagProvider } from "../tagging/index.js";
 
 async function main(): Promise<void> {
   const options = parseAnalyzeDeckCliOptions(process.argv.slice(2));
 
   if (!options.deckFilePath) {
-    console.error("Usage: npm run analyze -- <decklist-file> [--format json|markdown|html]");
+    console.error("Usage: npm run analyze -- <decklist-file> [--format json|markdown|html] [--offline]");
     process.exitCode = 1;
     return;
   }
 
-  const rawDeckList = await readFile(options.deckFilePath, "utf8");
-  const parsedDeck = parseDeckList(rawDeckList, {
-    sourceType: "plain_text",
-    sourceUrl: options.deckFilePath,
-  });
-  const cardDataSource = new CachedCardDataSource(
-    new ScryfallCardDataSource(),
-    new FileCardCache(join(process.cwd(), ".cache", "scryfall-cards.json")),
-  );
-  const resolution = await resolveDeckList(parsedDeck, cardDataSource);
-  const legality = validateCommanderDeck(parsedDeck, {
-    cardsByNormalizedName: resolution.cardsByNormalizedName,
-  });
-
-  if (!resolution.deck) {
-    console.log(JSON.stringify({ parsedDeck, legality, unresolvedNames: resolution.unresolvedNames }, null, 2));
-    process.exitCode = 1;
-    return;
-  }
-
+  const rawText = await readFile(options.deckFilePath, "utf8");
+  const offline = options.offline || process.env.MTG_DECK_ORACLE_OFFLINE === "1";
   const tagProvider = await loadOptionalCardTagProvider();
-  const baseTaggedDeck = tagProvider ? await tagDeckCardsWithProvider(resolution.deck, tagProvider) : tagDeckCards(resolution.deck);
-  const detectedCombos = await detectDeckCombos(
-    baseTaggedDeck,
-    new CommanderSpellbookComboDataProvider({
-      cache: new FileComboCache(join(process.cwd(), ".cache", "commander-spellbook-combos.json")),
-    }),
-  );
-  const taggedDeck = tagDeckCards(baseTaggedDeck, createComboTagsByName(detectedCombos));
-  const structure = analyzeDeckStructure(taggedDeck);
-  const consistency = analyzeConsistency(taggedDeck);
-  const comboEvaluations = evaluateDetectedCombos(detectedCombos, taggedDeck);
   const ratingProvider = await loadOptionalRatingProvider(options.cardRatings);
-  const score = scoreCommanderDeck({
-    deck: taggedDeck,
-    legality,
-    comboEvaluations,
-    consistency,
+  const result = await analyzeCommanderDeck({
+    rawText,
+    sourceUrl: options.deckFilePath,
+    cardDataSource: new CachedCardDataSource(
+      new ScryfallCardDataSource(),
+      new FileCardCache(join(process.cwd(), ".cache", "scryfall-cards.json")),
+    ),
+    comboDataProvider: new CommanderSpellbookComboDataProvider({
+      cache: new FileComboCache(join(process.cwd(), ".cache", "commander-spellbook-combos.json"), {
+        seed: createComboSeedCache(),
+        useSeedCatalog: offline,
+      }),
+    }),
+    ...(tagProvider ? { tagProvider } : {}),
     ...(ratingProvider ? { ratingProvider } : {}),
   });
-  const explanation = generateDeckScoreExplanation({
-    score,
-    legality,
-    structure,
-    consistency,
-    comboEvaluations,
-  });
-  const detailedRecommendations = recommendDeckImprovements(taggedDeck, structure);
 
-  console.log(renderReport(
-    {
-      legality,
-      structure,
-      consistency,
-      detectedCombos,
-      comboEvaluations,
-      score,
-      explanation,
-      detailedRecommendations,
-    },
-    options.format,
-  ));
+  if (!result.ok) {
+    console.log(JSON.stringify({ parsedDeck: result.parsedDeck, legality: result.legality, unresolvedNames: result.unresolvedNames }, null, 2));
+    process.exitCode = 1;
+    return;
+  }
+
+  console.log(renderReport(result.report, options.format));
 }
 
 await main();

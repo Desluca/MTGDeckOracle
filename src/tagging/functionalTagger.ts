@@ -189,6 +189,7 @@ function isBoardWipe(oracleText: string): boolean {
 function isProtection(oracleText: string): boolean {
   return (
     oracleText.includes("hexproof") ||
+    oracleText.includes("shroud") ||
     oracleText.includes("indestructible") ||
     oracleText.includes("protection from") ||
     oracleText.includes("prevent all damage") ||

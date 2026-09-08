@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { CommanderSpellbookComboDataProvider, FileComboCache } from "../../src/combo/index.js";
+import { CommanderSpellbookComboDataProvider, FileComboCache, createComboSeedCache } from "../../src/combo/index.js";
 import type { KnownCombo } from "../../src/domain/index.js";
 
 let tempDirs: string[] = [];
@@ -33,6 +33,31 @@ describe("FileComboCache", () => {
     const byCard = await reloaded.getManyByCard(["isochron scepter", "missing"]);
     expect(byCard.found.get("isochron scepter")).toEqual([combo]);
     expect(byCard.missing).toEqual(["missing"]);
+  });
+
+  it("falls back to seed byCard entries when the disk cache is empty", async () => {
+    const cache = new FileComboCache(join(await createTempDir(), "combos.json"), {
+      seed: createComboSeedCache(),
+    });
+
+    await expect(cache.getCatalog()).resolves.toBeUndefined();
+    const byCard = await cache.getManyByCard(["isochron scepter", "missing"]);
+    expect(byCard.found.get("isochron scepter")?.map((combo) => combo.id)).toEqual(
+      expect.arrayContaining(["isochron-dramatic", "isochron-dramatic-ballista"]),
+    );
+    expect(byCard.missing).toEqual(["missing"]);
+  });
+
+  it("uses the seed catalog only when requested", async () => {
+    const cache = new FileComboCache(join(await createTempDir(), "combos.json"), {
+      seed: createComboSeedCache(),
+      useSeedCatalog: true,
+    });
+
+    const catalog = await cache.getCatalog();
+    expect(catalog?.map((combo) => combo.id)).toEqual(
+      expect.arrayContaining(["isochron-dramatic", "thoracle-consult"]),
+    );
   });
 });
 
@@ -90,6 +115,38 @@ describe("CommanderSpellbookComboDataProvider cache", () => {
 
     const cached = await provider.findAllCombos();
     expect(cached.map((combo) => combo.id)).toEqual(["cached"]);
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("skips the network when seed byCard already has the card", async () => {
+    const cache = new FileComboCache(join(await createTempDir(), "combos.json"), {
+      seed: createComboSeedCache(),
+    });
+    const fetchFn = vi.fn();
+    const provider = new CommanderSpellbookComboDataProvider({ fetchFn, cache });
+
+    const combos = await provider.findCombosForCards(["Isochron Scepter"]);
+
+    expect(combos.map((combo) => combo.id)).toEqual(
+      expect.arrayContaining(["isochron-dramatic", "isochron-dramatic-ballista"]),
+    );
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("uses the seed catalog offline without calling the API", async () => {
+    const cache = new FileComboCache(join(await createTempDir(), "combos.json"), {
+      seed: createComboSeedCache(),
+      useSeedCatalog: true,
+    });
+    const fetchFn = vi.fn();
+    const provider = new CommanderSpellbookComboDataProvider({ fetchFn, cache });
+
+    const combos = await provider.findCombosForCards(["Isochron Scepter"]);
+
+    expect(combos.map((combo) => combo.id)).toEqual(
+      expect.arrayContaining(["isochron-dramatic", "isochron-dramatic-ballista"]),
+    );
+    expect(combos.some((combo) => combo.id === "thoracle-consult")).toBe(false);
     expect(fetchFn).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,7 @@ describe("parseAnalyzeDeckCliOptions", () => {
       deckFilePath: "deck.txt",
       format: "json",
       cardRatings: "auto",
+      offline: false,
     });
   });
 
@@ -16,6 +17,7 @@ describe("parseAnalyzeDeckCliOptions", () => {
       deckFilePath: "deck.txt",
       format: "markdown",
       cardRatings: "auto",
+      offline: false,
     });
   });
 
@@ -24,6 +26,7 @@ describe("parseAnalyzeDeckCliOptions", () => {
       deckFilePath: "deck.txt",
       format: "html",
       cardRatings: "auto",
+      offline: false,
     });
   });
 
@@ -35,6 +38,7 @@ describe("parseAnalyzeDeckCliOptions", () => {
     expect(parseAnalyzeDeckCliOptions(["--format", "html"])).toEqual({
       format: "html",
       cardRatings: "auto",
+      offline: false,
     });
   });
 
@@ -43,20 +47,32 @@ describe("parseAnalyzeDeckCliOptions", () => {
       deckFilePath: "deck.txt",
       format: "json",
       cardRatings: "off",
+      offline: false,
     });
     expect(parseAnalyzeDeckCliOptions(["deck.txt", "--card-ratings=auto"])).toEqual({
       deckFilePath: "deck.txt",
       format: "json",
       cardRatings: "auto",
+      offline: false,
     });
     expect(parseAnalyzeDeckCliOptions(["deck.txt", "--no-card-ratings"])).toEqual({
       deckFilePath: "deck.txt",
       format: "json",
       cardRatings: "off",
+      offline: false,
     });
   });
 
   it("throws for invalid card ratings mode", () => {
     expect(() => parseAnalyzeDeckCliOptions(["deck.txt", "--card-ratings", "always"])).toThrow("Invalid card ratings mode");
+  });
+
+  it("parses offline mode", () => {
+    expect(parseAnalyzeDeckCliOptions(["deck.txt", "--offline"])).toEqual({
+      deckFilePath: "deck.txt",
+      format: "json",
+      cardRatings: "auto",
+      offline: true,
+    });
   });
 });

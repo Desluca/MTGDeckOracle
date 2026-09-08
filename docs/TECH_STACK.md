@@ -46,6 +46,7 @@ raw decklist
   -> parser
   -> card data adapter
   -> commander validator
+  -> analyzeCommanderDeck pipeline
   -> deck analyzer
   -> combo evaluator
   -> scoring engine
@@ -64,6 +65,7 @@ src/
     cachedCardDataSource.ts
     fileCardCache.ts
     inMemoryCardCache.ts
+    inMemoryCardDataSource.ts
     scryfallBulkCardSource.ts
     scryfallCardDataSource.ts
     scryfallCardMapper.ts
@@ -76,6 +78,9 @@ src/
     comboEvaluator.ts
     fileComboCache.ts
     inMemoryComboDataSource.ts
+    knownComboSeed.ts
+  pipeline/
+    analyzeCommanderDeck.ts
   consistency/
     consistencyAnalyzer.ts
   deck/
@@ -148,11 +153,20 @@ tests/
         whtz-120.deck
 ```
 
+La CLI `npm run analyze` orchestra `analyzeCommanderDeck`.
+`--offline` o `MTG_DECK_ORACLE_OFFLINE=1` usa il catalogo combo seed in `knownComboSeed` senza chiamare Commander Spellbook.
+Il seed alimenta anche i lookup per carta quando la cache disco e' vuota, senza bloccare le query live per carte sconosciute.
+La cache disco in `.cache/commander-spellbook-combos.json` ha sempre priorita' sul seed.
+`npm run build-combo-cache` puo' popolare il catalogo completo in locale.
+Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
+
+CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
+
 ## Prossimo Step Tecnico
 
-Dopo parser, validatore, card-data, combo, cache Commander Spellbook, tagger, consistenza, scoring, spiegazioni, CLI, benchmark sintetici e tre decklist reali con oracle text, il prossimo blocco da implementare e':
+Dopo parser, validatore, pipeline di analisi, seed Spellbook, CI e decklist reali con oracle text, il prossimo blocco da implementare e':
 
-1. cache Spellbook popolata in CI/locale e altre decklist competitive di riferimento;
+1. catalogo Spellbook completo in locale (`npm run build-combo-cache`) e altre liste competitive di riferimento;
 2. UI web solo dopo il nucleo di scoring.
 
 ## Deploy Online

@@ -6,12 +6,14 @@ export interface AnalyzeDeckCliOptions {
   readonly deckFilePath?: string;
   readonly format: ReportFormat;
   readonly cardRatings: CardRatingsMode;
+  readonly offline: boolean;
 }
 
 export function parseAnalyzeDeckCliOptions(argv: readonly string[]): AnalyzeDeckCliOptions {
   let format: ReportFormat = "json";
   let cardRatings: CardRatingsMode = "auto";
   let deckFilePath: string | undefined;
+  let offline = false;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -43,12 +45,17 @@ export function parseAnalyzeDeckCliOptions(argv: readonly string[]): AnalyzeDeck
       continue;
     }
 
+    if (arg === "--offline") {
+      offline = true;
+      continue;
+    }
+
     if (!arg?.startsWith("-") && !deckFilePath) {
       deckFilePath = arg;
     }
   }
 
-  return deckFilePath ? { deckFilePath, format, cardRatings } : { format, cardRatings };
+  return deckFilePath ? { deckFilePath, format, cardRatings, offline } : { format, cardRatings, offline };
 }
 
 function parseReportFormat(value: string | undefined): ReportFormat {
