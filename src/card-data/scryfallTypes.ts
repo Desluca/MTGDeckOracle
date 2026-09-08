@@ -4,8 +4,8 @@ export interface ScryfallCard {
   readonly id: string;
   readonly oracle_id?: string;
   readonly name: string;
-  readonly set: string;
-  readonly collector_number: string;
+  readonly set?: string;
+  readonly collector_number?: string;
   readonly mana_cost?: string;
   readonly cmc: number;
   readonly colors?: readonly Color[];
@@ -32,4 +32,13 @@ export interface ScryfallCollectionResponse {
 
 export interface ScryfallIdentifier {
   readonly name: string;
+}
+
+export interface ScryfallBulkData {
+  readonly id: string;
+  readonly type: string;
+  readonly name: string;
+  readonly download_uri: string;
+  readonly updated_at?: string;
+  readonly size?: number;
 }

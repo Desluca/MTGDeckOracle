@@ -33,8 +33,8 @@ export function mapScryfallCardToCard(scryfallCard: ScryfallCard): Card {
       normalizedName: normalizeLookupName(scryfallCard.name),
     },
     print: {
-      setCode: scryfallCard.set,
-      collectorNumber: scryfallCard.collector_number,
+      ...(scryfallCard.set ? { setCode: scryfallCard.set } : {}),
+      ...(scryfallCard.collector_number ? { collectorNumber: scryfallCard.collector_number } : {}),
       scryfallId: scryfallCard.id,
       ...(scryfallCard.oracle_id ? { oracleId: scryfallCard.oracle_id } : {}),
     },

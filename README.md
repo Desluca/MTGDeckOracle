@@ -119,6 +119,11 @@ npm run build-card-tags
 ```
 
 Lo script legge `.cache/scryfall-cards.json` e scrive `.cache/external-card-tags.json`.
+Per generare la cache partendo dal bulk data Scryfall delle carte Oracle legali in Commander:
+
+```bash
+npm run build-card-tags -- --source scryfall-bulk
+```
 
 ## Rating Lab
 
