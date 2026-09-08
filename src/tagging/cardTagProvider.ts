@@ -31,7 +31,8 @@ export interface ExternalCardTagEntry {
   readonly source?: string;
 }
 
-interface ExternalCardTagFile {
+export interface ExternalCardTagFile {
+  readonly generatedAt?: string;
   readonly cards?: readonly ExternalCardTagEntry[];
 }
 

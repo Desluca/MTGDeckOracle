@@ -112,6 +112,14 @@ Formato supportato per i tag esterni:
 
 Il formato strutturato permette di tenere traccia di provenienza e confidenza dei tag mentre il motore continua a usare i tag funzionali normalizzati.
 
+Per generare una prima cache tag dalle carte gia' presenti nella cache Scryfall locale:
+
+```bash
+npm run build-card-tags
+```
+
+Lo script legge `.cache/scryfall-cards.json` e scrive `.cache/external-card-tags.json`.
+
 ## Rating Lab
 
 Il progetto include anche un sito locale per raccogliere dati utili al rating base delle carte. Mostra due carte random e chiede all'utente quale sia piu' forte.
