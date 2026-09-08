@@ -108,7 +108,7 @@ function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deck
   }
 
   return {
-    multiplier: Math.max(0.45, adjustedIdealPerHundred / normalizedCount),
+    multiplier: Math.max(0.75, adjustedIdealPerHundred / normalizedCount),
     reason: `${target.label} gia' abbondante: diminishing returns applicato.`,
   };
 }

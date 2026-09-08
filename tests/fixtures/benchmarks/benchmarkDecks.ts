@@ -6,8 +6,9 @@ import type { ScoringBenchmark } from "./benchmarkTypes.js";
 export const scoringBenchmarks: readonly ScoringBenchmark[] = [
   {
     id: "precon_core",
-    description: "Precon-like deck with playable structure but limited tuning.",
-    deck: createProfileDeck("precon", {
+    description: "Pantlaza-like precon: playable structure, many unfocused cards, low power ratings.",
+    deck: createProfileDeck({
+      commanderName: "Pantlaza, Sun-Blessed",
       lands: 38,
       ramp: 8,
       draw: 7,
@@ -16,14 +17,20 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 2,
       tutors: 0,
       averageFillerManaValue: 4,
+      functionalPowerRating: 4,
+      fillerPowerRating: 3,
     }),
     legality: legalReport(),
-    expectedScoreRange: { min: 40, max: 75 },
+    expectedScoreRange: { min: 45, max: 68 },
+    expectedBracket: 3,
   },
   {
     id: "casual_tuned",
-    description: "Focused casual deck with better role balance.",
-    deck: createProfileDeck("casual", {
+    description: "Muldrotha casual tuned: balanced roles, graveyard commander, mid power ratings.",
+    deck: createProfileDeck({
+      commanderName: "Muldrotha, the Gravetide",
+      commanderOracleText: "During each of your turns, you may play a land and cast a permanent spell of each permanent type from your graveyard.",
+      commanderTags: ["graveyard_synergy", "recursion"],
       lands: 36,
       ramp: 10,
       draw: 10,
@@ -32,48 +39,62 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 3,
       tutors: 2,
       averageFillerManaValue: 3,
+      functionalPowerRating: 6,
+      fillerPowerRating: 4,
     }),
     legality: legalReport(),
-    expectedScoreRange: { min: 55, max: 85 },
+    expectedScoreRange: { min: 62, max: 82 },
+    expectedBracket: 4,
   },
   {
     id: "high_power",
-    description: "High-power deck with strong density and a compact combo.",
-    deck: createProfileDeck("high-power", {
-      lands: 31,
+    description: "Kinnan high-power: dense ramp/draw, compact combo, strong card quality.",
+    deck: createProfileDeck({
+      commanderName: "Kinnan, Bonder Prodigy",
+      commanderTags: ["ramp", "value_engine"],
+      lands: 32,
       ramp: 16,
-      draw: 14,
-      interaction: 13,
+      draw: 12,
+      interaction: 11,
       protection: 6,
       winConditions: 4,
-      tutors: 6,
+      tutors: 5,
       averageFillerManaValue: 2,
+      functionalPowerRating: 8,
+      fillerPowerRating: 5,
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("high-power-combo", 88)],
-    expectedScoreRange: { min: 70, max: 95 },
+    expectedScoreRange: { min: 78, max: 92 },
+    expectedBracket: 4,
   },
   {
     id: "cedh_like",
-    description: "cEDH-like profile with high speed, tutor density and interaction.",
-    deck: createProfileDeck("cedh", {
+    description: "Thrasios cEDH-like: fast mana, tutors, interaction and a compact win.",
+    deck: createProfileDeck({
+      commanderName: "Thrasios, Triton Hero",
+      commanderTags: ["card_draw", "ramp"],
       lands: 28,
-      ramp: 20,
-      draw: 15,
-      interaction: 16,
-      protection: 8,
+      ramp: 18,
+      draw: 14,
+      interaction: 15,
+      protection: 7,
       winConditions: 4,
       tutors: 8,
       averageFillerManaValue: 1,
+      functionalPowerRating: 9.5,
+      fillerPowerRating: 7,
     }),
     legality: legalReport(),
-    comboEvaluations: [comboEvaluation("cedh-combo", 97)],
-    expectedScoreRange: { min: 78, max: 100 },
+    comboEvaluations: [comboEvaluation("cedh-combo", 97, "instant")],
+    expectedScoreRange: { min: 86, max: 100 },
+    expectedBracket: 5,
   },
   {
     id: "illegal_200_goodstuff",
-    description: "Illegally inflated 200-card goodstuff deck with many strong categories.",
-    deck: createProfileDeck("illegal-200", {
+    description: "Illegally inflated 200-card Kenrith goodstuff pile.",
+    deck: createProfileDeck({
+      commanderName: "Kenrith, the Returned King",
       mainboardSize: 199,
       lands: 80,
       ramp: 30,
@@ -83,6 +104,8 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 10,
       tutors: 10,
       averageFillerManaValue: 2,
+      functionalPowerRating: 8,
+      fillerPowerRating: 5,
     }),
     legality: {
       isLegal: false,
@@ -100,8 +123,10 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
   },
   {
     id: "whtz_200_legal",
-    description: "Legal Whtz-style 200-card deck that pays consistency cost but is not capped by legality.",
-    deck: createProfileDeck("whtz", {
+    description: "Legal Whtz-style 200-card deck: no legality cap, but consistency still suffers.",
+    deck: createProfileDeck({
+      commanderName: "Whtz, the Bibliophile",
+      commanderOracleText: "Rulebreaker — A deck with this commander has no maximum deck size.",
       mainboardSize: 199,
       lands: 80,
       ramp: 25,
@@ -111,17 +136,19 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 5,
       tutors: 15,
       averageFillerManaValue: 2,
-      commanderName: "Whtz, the Bibliophile",
-      commanderOracleText: "Rulebreaker — A deck with this commander has no maximum deck size.",
+      functionalPowerRating: 7,
+      fillerPowerRating: 5,
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("battle-of-wits-line", 82)],
-    expectedScoreRange: { min: 45, max: 90 },
+    expectedScoreRange: { min: 55, max: 82 },
+    expectedBracket: 3,
   },
   {
     id: "combo_fragments",
-    description: "Deck with combo fragments but weak ability to close games.",
-    deck: createProfileDeck("fragments", {
+    description: "Kess list with a partial combo and no way to reliably close.",
+    deck: createProfileDeck({
+      commanderName: "Kess, Dissident Mage",
       lands: 37,
       ramp: 7,
       draw: 6,
@@ -130,15 +157,19 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 0,
       tutors: 0,
       averageFillerManaValue: 4,
+      functionalPowerRating: 5,
+      fillerPowerRating: 3,
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("partial-combo", 25)],
-    expectedScoreRange: { min: 25, max: 70 },
+    expectedScoreRange: { min: 38, max: 62 },
+    expectedBracket: 3,
   },
   {
     id: "bad_mana_base",
-    description: "Deck with too few lands and a high curve.",
-    deck: createProfileDeck("bad-mana", {
+    description: "Gishath list with too few lands and a high curve.",
+    deck: createProfileDeck({
+      commanderName: "Gishath, Sun's Avatar",
       lands: 20,
       ramp: 3,
       draw: 5,
@@ -147,9 +178,43 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
       winConditions: 2,
       tutors: 0,
       averageFillerManaValue: 6,
+      functionalPowerRating: 5,
+      fillerPowerRating: 3,
     }),
     legality: legalReport(),
-    expectedScoreRange: { min: 15, max: 60 },
+    expectedScoreRange: { min: 28, max: 55 },
+    expectedBracket: 2,
+  },
+  {
+    id: "illegal_color_identity",
+    description: "Atraxa list with a red card outside the commander's color identity.",
+    deck: createProfileDeck({
+      commanderName: "Atraxa, Praetors' Voice",
+      lands: 36,
+      ramp: 10,
+      draw: 9,
+      interaction: 8,
+      protection: 3,
+      winConditions: 3,
+      tutors: 2,
+      averageFillerManaValue: 3,
+      functionalPowerRating: 6,
+      fillerPowerRating: 4,
+    }),
+    legality: {
+      isLegal: false,
+      legalityCap: 40,
+      issues: [
+        {
+          code: "color_identity_violation",
+          severity: "blocking",
+          cardName: "Lightning Bolt",
+          message: "Lightning Bolt is outside Atraxa's color identity.",
+        },
+      ],
+    },
+    expectedScoreRange: { min: 0, max: 40 },
+    expectedBracket: 2,
   },
 ];
 
@@ -165,33 +230,41 @@ interface ProfileDeckOptions {
   readonly averageFillerManaValue: number;
   readonly commanderName?: string;
   readonly commanderOracleText?: string;
+  readonly commanderTags?: readonly FunctionalTag[];
+  readonly functionalPowerRating?: number;
+  readonly fillerPowerRating?: number;
 }
 
-function createProfileDeck(id: string, options: ProfileDeckOptions) {
+function createProfileDeck(options: ProfileDeckOptions) {
   const mainboardSize = options.mainboardSize ?? 99;
+  const functionalPowerRating = options.functionalPowerRating ?? 5;
+  const fillerPowerRating = options.fillerPowerRating ?? 3;
+  const prefix = options.commanderName ?? "Benchmark";
   const mainboard: DeckCard[] = [
-    quantityCard(`${id} Land`, options.lands, [], 0, true),
-    quantityCard(`${id} Ramp`, options.ramp, ["ramp"], 2),
-    quantityCard(`${id} Draw`, options.draw, ["card_draw"], 3),
-    quantityCard(`${id} Interaction`, options.interaction, ["spot_removal"], 2),
-    quantityCard(`${id} Protection`, options.protection, ["protection"], 1),
-    quantityCard(`${id} Win`, options.winConditions, ["win_condition"], 4),
-    quantityCard(`${id} Tutor`, options.tutors, ["tutor"], 2),
+    quantityCard(`${prefix} Land`, options.lands, [], 0, true),
+    quantityCard(`${prefix} Ramp`, options.ramp, ["ramp"], 2, false, functionalPowerRating),
+    quantityCard(`${prefix} Draw`, options.draw, ["card_draw"], 3, false, functionalPowerRating),
+    quantityCard(`${prefix} Interaction`, options.interaction, ["spot_removal"], 2, false, functionalPowerRating),
+    quantityCard(`${prefix} Protection`, options.protection, ["protection"], 1, false, functionalPowerRating),
+    quantityCard(`${prefix} Win`, options.winConditions, ["win_condition"], 4, false, functionalPowerRating),
+    quantityCard(`${prefix} Tutor`, options.tutors, ["tutor"], 2, false, functionalPowerRating),
   ].filter((deckCard) => deckCard.quantity > 0);
   const usedCards = mainboard.reduce((total, deckCard) => total + deckCard.quantity, 0);
   const fillerCount = Math.max(0, mainboardSize - usedCards);
 
   if (fillerCount > 0) {
-    mainboard.push(quantityCard(`${id} Filler`, fillerCount, [], options.averageFillerManaValue));
+    mainboard.push(quantityCard(`${prefix} Filler`, fillerCount, [], options.averageFillerManaValue, false, fillerPowerRating));
   }
 
   return createResolvedTestDeck({
     commanders: [
       createTestCard({
-        name: options.commanderName ?? `${id} Commander`,
+        name: options.commanderName ?? `${prefix} Commander`,
         colorIdentity: ["W", "U"],
         canBeCommander: true,
         manaValue: 3,
+        functionalTags: options.commanderTags ?? [],
+        basePowerRating: functionalPowerRating,
         ...(options.commanderOracleText ? { oracleText: options.commanderOracleText } : {}),
       }),
     ],
@@ -205,6 +278,7 @@ function quantityCard(
   functionalTags: readonly FunctionalTag[],
   manaValue: number,
   isLand = false,
+  basePowerRating?: number,
 ): DeckCard {
   return mainboardCard(
     createTestCard({
@@ -213,6 +287,7 @@ function quantityCard(
       manaValue,
       types: isLand ? ["land"] : ["instant"],
       typeLine: isLand ? "Basic Land — Test" : "Instant",
+      ...(basePowerRating !== undefined ? { basePowerRating } : {}),
     }),
     quantity,
   );
@@ -226,11 +301,11 @@ function legalReport(): CommanderLegalityReport {
   };
 }
 
-function comboEvaluation(id: string, impactScore: number): ComboEvaluation {
+function comboEvaluation(id: string, impactScore: number, speed: ComboEvaluation["speed"] = "sorcery"): ComboEvaluation {
   return {
     detectedComboId: id,
     impactScore,
-    speed: "sorcery",
+    speed,
     totalManaValue: 4,
     commanderRole: "none",
     tutorAccessScore: 30,

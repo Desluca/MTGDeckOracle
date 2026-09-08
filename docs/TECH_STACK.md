@@ -158,6 +158,8 @@ I rating Elo raccolti dal Rating Lab vengono normalizzati in valori carta 0-10, 
 Questo permette al componente `card_quality` di usare dati reali raccolti dal laboratorio senza rendere il motore dipendente dalla UI o dal database.
 
 Il contextual evaluator considera anche una prima forma di "linea del comandante": se il comandante segnala sinergia con il cimitero, il target ideale del pacchetto graveyard aumenta prima di applicare diminishing returns.
+Il piano di gioco premia densita' di ruoli e copertura delle categorie chiave, non il semplice conteggio di carte taggate.
+La mana base abbassa il target di terre se il mazzo ha gia' ramp/fast mana, cosi' un profilo cEDH con poche terre non viene trattato come un precon senza accelerazione.
 
 ## Tag Esterni
 

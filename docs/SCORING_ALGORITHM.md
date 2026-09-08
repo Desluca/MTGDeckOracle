@@ -368,14 +368,13 @@ Il bracket stimato non deve sostituire il voto numerico. Deve essere una traduzi
 
 Bozza:
 
-| Voto | Interpretazione |
-| ---: | --- |
-| 0-20 | Lista non valida, casual incompleto o quasi ingiocabile |
-| 21-40 | Casual debole o molto incoerente |
-| 41-60 | Casual funzionante |
-| 61-75 | Casual forte / high power leggero |
-| 76-88 | High power |
-| 89-100 | cEDH o quasi cEDH |
+| Voto | Bracket | Interpretazione |
+| ---: | ---: | --- |
+| 0-20 | 1 | Lista non valida, rotta o quasi ingiocabile |
+| 21-50 | 2 | Casual debole, precon grezzo o mana base pessima |
+| 51-76 | 3 | Casual funzionante / precon solido |
+| 77-90 | 4 | Casual forte / high power |
+| 91-100 | 5 | cEDH o quasi cEDH |
 
 Il bracket deve considerare anche velocita' media di vittoria, tutor, combo compatte, free interaction, fast mana e densita' di carte ad alta efficienza.
 

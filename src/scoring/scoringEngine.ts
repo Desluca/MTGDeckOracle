@@ -36,9 +36,15 @@ export function scoreCommanderDeck(input: ScoreCommanderDeckInput): ScoreBreakdo
   const components: ScoreComponent[] = [
     component("legality", "Legalita' e struttura", input.legality.legalityCap, weights.legality, explainLegality(input.legality)),
     component("consistency", "Consistenza", consistency.score, weights.consistency, "Probabilita' di accedere a terre, ramp, draw e win condition."),
-    component("game_plan", "Piano di gioco", scoreGamePlan(roleCount), weights.gamePlan, "Premia densita' di carte con ruoli funzionali chiari."),
-    component("card_quality", "Qualita' carte", scoreCardQuality(input.deck, input.ratingProvider), weights.cardQuality, "Media dei rating carta disponibili, con default neutro."),
-    component("mana_base", "Mana base", scoreManaBase(structure.composition.landCount, structure.composition.totalCards), weights.manaBase, "Valuta il numero di terre rispetto alla dimensione del mazzo."),
+    component("game_plan", "Piano di gioco", scoreGamePlan(input.deck), weights.gamePlan, "Premia densita' di ruoli funzionali e copertura del piano."),
+    component("card_quality", "Qualita' carte", scoreCardQuality(input.deck, input.ratingProvider), weights.cardQuality, "Media dei rating carta, con un peso minore per il valore contestuale."),
+    component(
+      "mana_base",
+      "Mana base",
+      scoreManaBase(structure.composition.landCount, structure.composition.totalCards, roleCount(["ramp", "fast_mana"])),
+      weights.manaBase,
+      "Valuta le terre rispetto alla dimensione del mazzo, tenendo conto di ramp e fast mana.",
+    ),
     component("card_advantage", "Card advantage", scoreDensity(roleCount(["card_draw", "card_selection"]), structure.composition.totalCards, 10), weights.cardAdvantage, "Valuta draw e selezione carte."),
     component("interaction", "Interaction", scoreDensity(roleCount(["spot_removal", "board_wipe", "counterspell", "graveyard_hate"]), structure.composition.totalCards, 9), weights.interaction, "Valuta risposte a minacce e combo."),
     component("win_conditions", "Win condition e combo", scoreWinConditions(input.deck, comboEvaluations), weights.winConditions, "Combina win condition esplicite e impatto combo."),
@@ -86,36 +92,77 @@ function getRoleCount(deck: DeckList, tags: readonly FunctionalTag[]): number {
   }, 0);
 }
 
-function scoreGamePlan(roleCount: (tags: readonly FunctionalTag[]) => number): number {
-  const proactive = roleCount(["ramp", "card_draw", "tutor", "win_condition", "combo_piece", "combo_payoff"]);
-  const reactive = roleCount(["spot_removal", "board_wipe", "counterspell", "protection"]);
-  return clampScore(35 + proactive * 3 + reactive * 2);
+function scoreGamePlan(deck: DeckList): number {
+  const deckCards = commanderDeckCards(deck);
+  const nonlandCards = deckCards.filter((deckCard) => !isLand(deckCard));
+  const nonlandCount = countDeckCards(nonlandCards);
+
+  if (nonlandCount === 0) {
+    return 0;
+  }
+
+  const functionalCount = countDeckCards(
+    nonlandCards.filter((deckCard) => deckCard.card.evaluation.functionalTags.some((tag) => tag !== "land")),
+  );
+  const densityScore = (functionalCount / nonlandCount) * 70;
+  const coverageScore =
+    ([
+      countTaggedCards(deckCards, ["ramp", "fast_mana"]) >= 6,
+      countTaggedCards(deckCards, ["card_draw", "card_selection"]) >= 6,
+      countTaggedCards(deckCards, ["spot_removal", "board_wipe", "counterspell", "graveyard_hate"]) >= 5,
+      countTaggedCards(deckCards, ["win_condition", "combo_payoff", "combo_piece"]) >= 2,
+    ].filter(Boolean).length /
+      4) *
+    30;
+
+  return clampScore(densityScore + coverageScore);
 }
 
 function scoreCardQuality(deck: DeckList, ratingProvider: CardRatingProvider | undefined): number {
   const deckCards = commanderDeckCards(deck).filter((deckCard) => !deckCard.card.rules.types.includes("land"));
-  const deckSize = deckCards.reduce((total, deckCard) => total + deckCard.quantity, 0);
+  const deckSize = countDeckCards(deckCards);
 
   if (deckSize === 0) {
     return 0;
   }
 
-  const totalContextualValue = deckCards.reduce((total, deckCard) => {
-    const contribution = evaluateCardContribution(deckCard, deckCards, deckSize, ratingProvider ? { ratingProvider } : {});
-    return total + contribution.contextualValue * deckCard.quantity;
-  }, 0);
+  const totals = deckCards.reduce(
+    (total, deckCard) => {
+      const contribution = evaluateCardContribution(deckCard, deckCards, deckSize, ratingProvider ? { ratingProvider } : {});
+      return {
+        baseValue: total.baseValue + contribution.baseValue * deckCard.quantity,
+        contextualValue: total.contextualValue + contribution.contextualValue * deckCard.quantity,
+      };
+    },
+    { baseValue: 0, contextualValue: 0 },
+  );
 
-  return clampScore((totalContextualValue / deckSize) * 10);
+  return clampScore(((totals.baseValue * 0.65 + totals.contextualValue * 0.35) / deckSize) * 10);
 }
 
-function scoreManaBase(landCount: number, deckSize: number): number {
+function scoreManaBase(landCount: number, deckSize: number, rampAndFastMana: number): number {
   if (deckSize <= 0) {
     return 0;
   }
 
   const landRatio = landCount / deckSize;
-  const idealRatio = 37 / 100;
-  return clampScore(100 - Math.abs(landRatio - idealRatio) * 280);
+  const adjustedIdealRatio = (37 - Math.min(12, rampAndFastMana * 0.45)) / 100;
+  return clampScore(100 - Math.abs(landRatio - adjustedIdealRatio) * 280);
+}
+
+function isLand(deckCard: { readonly card: { readonly rules: { readonly types: readonly string[] } } }): boolean {
+  return deckCard.card.rules.types.includes("land");
+}
+
+function countDeckCards(cards: readonly { readonly quantity: number }[]): number {
+  return cards.reduce((total, deckCard) => total + deckCard.quantity, 0);
+}
+
+function countTaggedCards(deckCards: ReturnType<typeof commanderDeckCards>, tags: readonly FunctionalTag[]): number {
+  return deckCards.reduce((total, deckCard) => {
+    const hasTag = tags.some((tag) => deckCard.card.evaluation.functionalTags.includes(tag));
+    return total + (hasTag ? deckCard.quantity : 0);
+  }, 0);
 }
 
 function scoreDensity(count: number, deckSize: number, idealPerHundred: number): number {
@@ -178,15 +225,15 @@ function bracketFromScore(score: number): CommanderBracket {
     return 1;
   }
 
-  if (score <= 40) {
+  if (score <= 50) {
     return 2;
   }
 
-  if (score <= 75) {
+  if (score <= 76) {
     return 3;
   }
 
-  if (score <= 88) {
+  if (score <= 90) {
     return 4;
   }
 

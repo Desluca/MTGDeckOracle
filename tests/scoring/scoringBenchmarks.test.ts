@@ -30,6 +30,21 @@ describe("scoring benchmarks", () => {
 
     expect(whtzScore.finalScore).toBeGreaterThan(illegalScore.finalScore);
   });
+
+  it("orders common power bands from precon to cEDH", () => {
+    const precon = scoreById("precon_core");
+    const casual = scoreById("casual_tuned");
+    const highPower = scoreById("high_power");
+    const cedh = scoreById("cedh_like");
+
+    expect(precon.finalScore).toBeLessThan(casual.finalScore);
+    expect(casual.finalScore).toBeLessThan(highPower.finalScore);
+    expect(highPower.finalScore).toBeLessThan(cedh.finalScore);
+  });
+
+  it("keeps a bad mana base below a tuned casual deck", () => {
+    expect(scoreById("bad_mana_base").finalScore).toBeLessThan(scoreById("casual_tuned").finalScore);
+  });
 });
 
 function scoreBenchmark(benchmark: ScoringBenchmark) {
@@ -38,4 +53,14 @@ function scoreBenchmark(benchmark: ScoringBenchmark) {
     legality: benchmark.legality,
     ...(benchmark.comboEvaluations ? { comboEvaluations: benchmark.comboEvaluations } : {}),
   });
+}
+
+function scoreById(id: string) {
+  const benchmark = scoringBenchmarks.find((candidate) => candidate.id === id);
+
+  if (!benchmark) {
+    throw new Error(`Missing scoring benchmark: ${id}`);
+  }
+
+  return scoreBenchmark(benchmark);
 }

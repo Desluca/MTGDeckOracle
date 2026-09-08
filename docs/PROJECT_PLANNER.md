@@ -210,7 +210,9 @@ DeckAnalysis
 
 ## Benchmark Necessari
 
-Creare una cartella futura `fixtures/decks/` con:
+La prima suite vive in `tests/fixtures/benchmarks/` e copre precon, casual tuned, high power, cEDH-like, 200 carte illegali, Whtz legale, combo frammentate, mana base pessima e identita' colore illegale.
+
+Prossimo passo: sostituire i profili sintetici con decklist `.deck` reali in `tests/fixtures/decks/`:
 
 - `precon_low.deck`;
 - `precon_modded.deck`;

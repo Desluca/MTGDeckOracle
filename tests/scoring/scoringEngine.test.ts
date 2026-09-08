@@ -91,20 +91,36 @@ describe("scoreCommanderDeck", () => {
     expect(score.commanderBracket).toBe(1);
   });
 
-  it("uses contextual card value for card quality", () => {
-    const scarceRampScore = scoreCommanderDeck({
-      deck: createRampContextDeck(1),
+  it("uses stronger base ratings to raise card quality", () => {
+    const weakScore = scoreCommanderDeck({
+      deck: createRatedSpellDeck(3),
       legality: legalReport(),
     });
-    const saturatedRampScore = scoreCommanderDeck({
-      deck: createRampContextDeck(20),
+    const strongScore = scoreCommanderDeck({
+      deck: createRatedSpellDeck(8),
       legality: legalReport(),
     });
 
-    const scarceCardQuality = scarceRampScore.components.find((component) => component.category === "card_quality")?.rawScore;
-    const saturatedCardQuality = saturatedRampScore.components.find((component) => component.category === "card_quality")?.rawScore;
+    const weakCardQuality = weakScore.components.find((component) => component.category === "card_quality")?.rawScore ?? 0;
+    const strongCardQuality = strongScore.components.find((component) => component.category === "card_quality")?.rawScore ?? 0;
 
-    expect(scarceCardQuality).toBeGreaterThan(saturatedCardQuality ?? 0);
+    expect(strongCardQuality).toBeGreaterThan(weakCardQuality);
+  });
+
+  it("scores a low-land deck higher when it has enough ramp", () => {
+    const withoutRamp = scoreCommanderDeck({
+      deck: createLowLandDeck(0),
+      legality: legalReport(),
+    });
+    const withRamp = scoreCommanderDeck({
+      deck: createLowLandDeck(18),
+      legality: legalReport(),
+    });
+
+    const withoutRampMana = withoutRamp.components.find((component) => component.category === "mana_base")?.rawScore ?? 0;
+    const withRampMana = withRamp.components.find((component) => component.category === "mana_base")?.rawScore ?? 0;
+
+    expect(withRampMana).toBeGreaterThan(withoutRampMana);
   });
 
   it("uses an external rating provider for card quality", () => {
@@ -158,11 +174,21 @@ function createDeckWithoutWinConditions() {
   });
 }
 
-function createRampContextDeck(rampCount: number) {
+function createRatedSpellDeck(basePowerRating: number) {
   return createResolvedTestDeck({
     mainboard: [
-      mainboardCard(createTestCard({ name: "Ramp Spell", functionalTags: ["ramp"], basePowerRating: 6 }), rampCount),
-      mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 99 - rampCount),
+      mainboardCard(createTestCard({ name: "Spell", functionalTags: ["card_draw"], basePowerRating }), 20),
+      mainboardCard(createTestCard({ name: "Filler", manaValue: 3, basePowerRating }), 79),
+    ],
+  });
+}
+
+function createLowLandDeck(rampCount: number) {
+  return createResolvedTestDeck({
+    mainboard: [
+      mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Island" }), 28),
+      mainboardCard(createTestCard({ name: "Ramp Spell", functionalTags: ["fast_mana"], manaValue: 1 }), rampCount),
+      mainboardCard(createTestCard({ name: "Filler", manaValue: 2 }), 71 - rampCount),
     ],
   });
 }
