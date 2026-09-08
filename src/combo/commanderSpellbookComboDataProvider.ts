@@ -1,18 +1,21 @@
 import type { ComboOutcome, KnownCombo } from "../domain/index.js";
 import { normalizeLookupName, uniqueNormalizedNames } from "../card-data/index.js";
-import type { ComboDataProvider } from "./comboDataSource.js";
+import type { ComboCache } from "./comboCache.js";
+import { filterCombosForCards, type ComboDataProvider } from "./comboDataSource.js";
 import type { CommanderSpellbookVariant, CommanderSpellbookVariantResponse } from "./commanderSpellbookTypes.js";
 
 export interface CommanderSpellbookComboDataProviderOptions {
   readonly apiBaseUrl?: string;
   readonly fetchFn?: typeof fetch;
   readonly limitPerCard?: number;
+  readonly cache?: ComboCache;
 }
 
 export interface CommanderSpellbookCatalogOptions {
   readonly pageSize?: number;
   readonly maxPages?: number;
   readonly delayMs?: number;
+  readonly refreshCatalog?: boolean;
 }
 
 const DEFAULT_API_BASE_URL = "https://backend.commanderspellbook.com";
@@ -22,31 +25,51 @@ export class CommanderSpellbookComboDataProvider implements ComboDataProvider {
   private readonly apiBaseUrl: string;
   private readonly fetchFn: typeof fetch;
   private readonly limitPerCard: number;
+  private readonly cache: ComboCache | undefined;
 
   constructor(options: CommanderSpellbookComboDataProviderOptions = {}) {
     this.apiBaseUrl = options.apiBaseUrl ?? DEFAULT_API_BASE_URL;
     this.fetchFn = options.fetchFn ?? fetch;
     this.limitPerCard = options.limitPerCard ?? DEFAULT_LIMIT_PER_CARD;
+    this.cache = options.cache;
   }
 
   async findCombosForCards(normalizedCardNames: readonly string[]): Promise<readonly KnownCombo[]> {
+    const catalog = await this.cache?.getCatalog();
+    if (catalog) {
+      return filterCombosForCards(catalog, normalizedCardNames);
+    }
+
+    const cardNames = uniqueNormalizedNames(normalizedCardNames);
+    const cached = (await this.cache?.getManyByCard(cardNames)) ?? { found: new Map(), missing: cardNames };
     const combosById = new Map<string, KnownCombo>();
+    const fetchedByCard = new Map<string, readonly KnownCombo[]>();
 
-    for (const cardName of uniqueNormalizedNames(normalizedCardNames)) {
-      const variants = await this.fetchVariantsForCard(cardName);
+    for (const combos of cached.found.values()) {
+      addCombos(combosById, combos);
+    }
 
-      for (const variant of variants) {
-        const combo = mapCommanderSpellbookVariant(variant);
-        if (combo.pieces.length > 0) {
-          combosById.set(combo.id, combo);
-        }
-      }
+    for (const cardName of cached.missing) {
+      const combos = (await this.fetchVariantsForCard(cardName)).map(mapCommanderSpellbookVariant).filter((combo) => combo.pieces.length > 0);
+      fetchedByCard.set(cardName, combos);
+      addCombos(combosById, combos);
+    }
+
+    if (this.cache && fetchedByCard.size > 0) {
+      await this.cache.setManyByCard(fetchedByCard);
     }
 
     return [...combosById.values()];
   }
 
   async findAllCombos(options: CommanderSpellbookCatalogOptions = {}): Promise<readonly KnownCombo[]> {
+    if (!options.refreshCatalog) {
+      const cachedCatalog = await this.cache?.getCatalog();
+      if (cachedCatalog) {
+        return cachedCatalog;
+      }
+    }
+
     const pageSize = options.pageSize ?? 100;
     const maxPages = options.maxPages ?? Number.POSITIVE_INFINITY;
     const delayMs = options.delayMs ?? 0;
@@ -87,7 +110,9 @@ export class CommanderSpellbookComboDataProvider implements ComboDataProvider {
       nextUrl = undefined;
     }
 
-    return [...combosById.values()];
+    const combos = [...combosById.values()];
+    await this.cache?.setCatalog(combos);
+    return combos;
   }
 
   private async fetchVariantsForCard(normalizedCardName: string): Promise<readonly CommanderSpellbookVariant[]> {
@@ -124,6 +149,12 @@ export class CommanderSpellbookComboDataProvider implements ComboDataProvider {
     }
 
     return (await response.json()) as CommanderSpellbookVariantResponse;
+  }
+}
+
+function addCombos(combosById: Map<string, KnownCombo>, combos: readonly KnownCombo[]): void {
+  for (const combo of combos) {
+    combosById.set(combo.id, combo);
   }
 }
 

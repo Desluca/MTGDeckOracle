@@ -2,6 +2,7 @@ import type { CommanderLegalityReport, ComboEvaluation, DeckCard, FunctionalTag 
 import { createTestCard } from "../../utils/cardFactory.js";
 import { createResolvedTestDeck, mainboardCard } from "../../utils/resolvedDeckFactory.js";
 import type { ScoringBenchmark } from "./benchmarkTypes.js";
+import { loadRealDeckBenchmark } from "./loadFixtureDeck.js";
 
 export const scoringBenchmarks: readonly ScoringBenchmark[] = [
   {
@@ -216,6 +217,27 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     expectedScoreRange: { min: 0, max: 40 },
     expectedBracket: 2,
   },
+  loadRealDeckBenchmark(
+    "real_pantlaza_precon",
+    "pantlaza-precon.deck",
+    "Real Pantlaza dinosaur list tagged from oracle text.",
+    { min: 70, max: 85 },
+    4,
+  ),
+  loadRealDeckBenchmark(
+    "real_muldrotha_casual",
+    "muldrotha-casual.deck",
+    "Real Muldrotha graveyard list tagged from oracle text.",
+    { min: 78, max: 90 },
+    4,
+  ),
+  loadRealDeckBenchmark(
+    "real_kinnan_high_power",
+    "kinnan-high-power.deck",
+    "Real Kinnan high-power list with a compact Spellbook combo.",
+    { min: 86, max: 91 },
+    4,
+  ),
 ];
 
 interface ProfileDeckOptions {

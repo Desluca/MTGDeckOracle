@@ -15,6 +15,14 @@ export async function resolveDeckList(
 ): Promise<DeckResolutionResult> {
   const requestedNames = uniqueNormalizedNames(parsedDeck.lines.map((line) => line.normalizedName));
   const cardsByNormalizedName = await cardDataSource.findCardsByNames(requestedNames);
+  return resolveDeckListFromMap(parsedDeck, cardsByNormalizedName);
+}
+
+export function resolveDeckListFromMap(
+  parsedDeck: ParsedDeck,
+  cardsByNormalizedName: ReadonlyMap<string, Card>,
+): DeckResolutionResult {
+  const requestedNames = uniqueNormalizedNames(parsedDeck.lines.map((line) => line.normalizedName));
   const unresolvedNames = requestedNames.filter((name) => !cardsByNormalizedName.has(name));
 
   if (unresolvedNames.length > 0) {

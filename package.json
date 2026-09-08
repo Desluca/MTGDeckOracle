@@ -15,6 +15,7 @@
     "dev": "tsx src/index.ts",
     "analyze": "tsx src/cli/analyzeDeck.ts",
     "build-card-tags": "tsx src/cli/buildCardTagCache.ts",
+    "build-combo-cache": "tsx src/cli/buildComboCache.ts",
     "rating-lab": "tsx src/rating-lab/server.ts",
     "start": "node dist/src/rating-lab/server.js"
   },

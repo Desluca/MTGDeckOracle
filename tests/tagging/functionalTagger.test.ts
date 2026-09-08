@@ -6,9 +6,16 @@ import { createResolvedTestDeck, mainboardCard } from "../utils/resolvedDeckFact
 
 describe("inferFunctionalTags", () => {
   it("tags lands", () => {
-    const card = createTestCard({ name: "Forest", types: ["land"], typeLine: "Basic Land — Forest" });
+    const card = createTestCard({
+      name: "Forest",
+      types: ["land"],
+      typeLine: "Basic Land — Forest",
+      oracleText: "({T}: Add {G}.)",
+    });
 
     expect(inferFunctionalTags(card)).toContain("land");
+    expect(inferFunctionalTags(card)).not.toContain("ramp");
+    expect(inferFunctionalTags(card)).not.toContain("fast_mana");
   });
 
   it("tags fast mana", () => {

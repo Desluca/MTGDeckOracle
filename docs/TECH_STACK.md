@@ -70,9 +70,11 @@ src/
   combo/
     commanderSpellbookComboDataProvider.ts
     commanderSpellbookTypes.ts
+    comboCache.ts
     comboDataSource.ts
     comboDetector.ts
     comboEvaluator.ts
+    fileComboCache.ts
     inMemoryComboDataSource.ts
   consistency/
     consistencyAnalyzer.ts
@@ -121,6 +123,7 @@ src/
   cli/
     analyzeDeck.ts
     buildCardTagCache.ts
+    buildComboCache.ts
     cliOptions.ts
   index.ts
 tests/
@@ -128,15 +131,24 @@ tests/
     benchmarks/
       benchmarkDecks.ts
       benchmarkTypes.ts
+      loadFixtureDeck.ts
+    cards/
+      stapleCards.ts
+    combos/
+      fixtureCombos.ts
+    decks/
+      real/
+        kinnan-high-power.deck
+        muldrotha-casual.deck
+        pantlaza-precon.deck
 ```
 
 ## Prossimo Step Tecnico
 
-Dopo parser, validatore, card-data, combo, Commander Spellbook, tagger, consistenza (libreria vs command zone, tutor, interaction, ridondanza), scoring MVP, spiegazioni, recommendations, renderer report, CLI e benchmark iniziali, il prossimo blocco da implementare e':
+Dopo parser, validatore, card-data, combo, cache Commander Spellbook, tagger, consistenza, scoring, spiegazioni, CLI, benchmark sintetici e tre decklist reali con oracle text, il prossimo blocco da implementare e':
 
-1. sostituire parte dei benchmark sintetici con decklist reali;
-2. cache delle chiamate Commander Spellbook;
-3. UI web solo dopo il nucleo di scoring.
+1. allargare le decklist reali (cEDH Thrasios, illegal/Whtz) e ricalibrare i range;
+2. UI web solo dopo il nucleo di scoring.
 
 ## Deploy Online
 

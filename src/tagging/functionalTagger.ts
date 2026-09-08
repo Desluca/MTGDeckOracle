@@ -148,6 +148,10 @@ function mergeFunctionalTags(
 }
 
 function isRamp(card: Card, oracleText: string): boolean {
+  if (card.rules.types.includes("land")) {
+    return false;
+  }
+
   if (oracleText.includes("add ") && oracleText.includes("mana")) {
     return true;
   }

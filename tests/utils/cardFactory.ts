@@ -21,7 +21,7 @@ export function createTestCard(options: TestCardOptions): Card {
   const colors = options.colors ?? options.colorIdentity ?? [];
   const colorIdentity = options.colorIdentity ?? colors;
   const typeLine = options.typeLine ?? (options.canBeCommander ? "Legendary Creature — Test" : "Instant");
-  const types = options.types ?? (typeLine.toLowerCase().includes("creature") ? ["creature"] : ["instant"]);
+  const types = options.types ?? inferTypesFromTypeLine(typeLine);
 
   return {
     identity: {
@@ -47,6 +47,20 @@ export function createTestCard(options: TestCardOptions): Card {
       ...(options.basePowerRating !== undefined ? { basePowerRating: options.basePowerRating } : {}),
     },
   };
+}
+
+function inferTypesFromTypeLine(typeLine: string): readonly CardType[] {
+  const lower = typeLine.toLowerCase();
+  const types: CardType[] = [];
+  const candidates: readonly CardType[] = ["land", "creature", "artifact", "enchantment", "instant", "sorcery", "planeswalker", "battle"];
+
+  for (const type of candidates) {
+    if (lower.includes(type)) {
+      types.push(type);
+    }
+  }
+
+  return types.length > 0 ? types : ["instant"];
 }
 
 function parseSubtypes(typeLine: string): readonly string[] {

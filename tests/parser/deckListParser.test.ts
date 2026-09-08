@@ -20,6 +20,17 @@ describe("parseDeckList", () => {
     expect(parsed.totalQuantity).toBe(100);
   });
 
+  for (const fileName of ["real/pantlaza-precon.deck", "real/muldrotha-casual.deck", "real/kinnan-high-power.deck"]) {
+    it(`parses ${fileName} as a 100-card commander list`, () => {
+      const parsed = parseDeckList(readDeckFixture(fileName));
+
+      expect(parsed.issues.filter((issue) => issue.severity === "error")).toEqual([]);
+      expect(parsed.sectionCounts.commander).toBe(1);
+      expect(parsed.sectionCounts.mainboard).toBe(99);
+      expect(parsed.totalQuantity).toBe(100);
+    });
+  }
+
   it("parses quantity followed by card name", () => {
     const parsed = parseDeckList("1 Sol Ring");
 

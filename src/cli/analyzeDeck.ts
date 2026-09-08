@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { analyzeDeckStructure } from "../analysis/index.js";
 import { CachedCardDataSource, FileCardCache, ScryfallCardDataSource } from "../card-data/index.js";
 import { parseAnalyzeDeckCliOptions } from "./cliOptions.js";
-import { CommanderSpellbookComboDataProvider, detectDeckCombos, evaluateDetectedCombos } from "../combo/index.js";
+import { CommanderSpellbookComboDataProvider, FileComboCache, detectDeckCombos, evaluateDetectedCombos } from "../combo/index.js";
 import { analyzeConsistency } from "../consistency/index.js";
 import { resolveDeckList } from "../deck/index.js";
 import { generateDeckScoreExplanation } from "../explanation/index.js";
@@ -48,7 +48,12 @@ async function main(): Promise<void> {
 
   const tagProvider = await loadOptionalCardTagProvider();
   const baseTaggedDeck = tagProvider ? await tagDeckCardsWithProvider(resolution.deck, tagProvider) : tagDeckCards(resolution.deck);
-  const detectedCombos = await detectDeckCombos(baseTaggedDeck, new CommanderSpellbookComboDataProvider());
+  const detectedCombos = await detectDeckCombos(
+    baseTaggedDeck,
+    new CommanderSpellbookComboDataProvider({
+      cache: new FileComboCache(join(process.cwd(), ".cache", "commander-spellbook-combos.json")),
+    }),
+  );
   const taggedDeck = tagDeckCards(baseTaggedDeck, createComboTagsByName(detectedCombos));
   const structure = analyzeDeckStructure(taggedDeck);
   const consistency = analyzeConsistency(taggedDeck);

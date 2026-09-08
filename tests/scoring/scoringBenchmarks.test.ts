@@ -42,8 +42,13 @@ describe("scoring benchmarks", () => {
     expect(highPower.finalScore).toBeLessThan(cedh.finalScore);
   });
 
-  it("keeps a bad mana base below a tuned casual deck", () => {
-    expect(scoreById("bad_mana_base").finalScore).toBeLessThan(scoreById("casual_tuned").finalScore);
+  it("orders real oracle-tagged lists from precon to high power", () => {
+    const pantlaza = scoreById("real_pantlaza_precon");
+    const muldrotha = scoreById("real_muldrotha_casual");
+    const kinnan = scoreById("real_kinnan_high_power");
+
+    expect(pantlaza.finalScore).toBeLessThan(muldrotha.finalScore);
+    expect(muldrotha.finalScore).toBeLessThan(kinnan.finalScore);
   });
 });
 

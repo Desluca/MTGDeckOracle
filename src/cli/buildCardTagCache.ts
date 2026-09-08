@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { ScryfallBulkCardSource } from "../card-data/index.js";
-import { CommanderSpellbookComboDataProvider } from "../combo/index.js";
+import { CommanderSpellbookComboDataProvider, FileComboCache } from "../combo/index.js";
 import type { Card } from "../domain/index.js";
 import {
   buildComboCardTagSnapshot,
@@ -109,7 +109,9 @@ function parsePositiveInteger(value: string | undefined, fallback: number): numb
 
 async function buildSourceSnapshot(options: BuildCardTagCacheOptions): Promise<ExternalCardTagFile> {
   if (options.source === "spellbook") {
-    const combos = await new CommanderSpellbookComboDataProvider().findAllCombos({
+    const combos = await new CommanderSpellbookComboDataProvider({
+      cache: new FileComboCache(join(process.cwd(), ".cache", "commander-spellbook-combos.json")),
+    }).findAllCombos({
       pageSize: options.pageSize,
       maxPages: options.maxPages,
       delayMs: 200,
