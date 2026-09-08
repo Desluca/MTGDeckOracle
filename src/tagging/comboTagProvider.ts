@@ -1,6 +1,6 @@
 import { normalizeLookupName } from "../card-data/index.js";
-import type { DetectedCombo, FunctionalTag } from "../domain/index.js";
-import type { CardTagEvidence } from "./cardTagProvider.js";
+import type { DetectedCombo, FunctionalTag, KnownCombo } from "../domain/index.js";
+import type { CardTagEvidence, ExternalCardTagFile } from "./cardTagProvider.js";
 
 const COMBO_TAG_CONFIDENCE = 0.95;
 
@@ -30,6 +30,33 @@ export function createComboTagsByName(detectedCombos: readonly DetectedCombo[]):
       [...new Set(evidence.map((tagEvidence) => tagEvidence.tag))].sort(),
     ]),
   );
+}
+
+export function buildComboCardTagSnapshot(
+  combos: readonly KnownCombo[],
+  generatedAt = new Date().toISOString(),
+): ExternalCardTagFile {
+  const evidenceByName = new Map<string, CardTagEvidence[]>();
+  const namesByNormalizedName = new Map<string, string>();
+
+  for (const combo of combos) {
+    for (const piece of combo.pieces) {
+      addComboEvidence(evidenceByName, piece.cardName, "combo_piece", combo.source);
+      namesByNormalizedName.set(normalizeLookupName(piece.cardName), piece.cardName);
+    }
+  }
+
+  return {
+    generatedAt,
+    cards: [...evidenceByName.entries()]
+      .map(([normalizedName, evidence]) => ({
+        name: namesByNormalizedName.get(normalizedName) ?? normalizedName,
+        normalizedName,
+        source: "commander_spellbook",
+        tags: [...evidence].sort((left, right) => left.tag.localeCompare(right.tag) || left.source.localeCompare(right.source)),
+      }))
+      .sort((left, right) => left.normalizedName.localeCompare(right.normalizedName)),
+  };
 }
 
 function addComboEvidence(

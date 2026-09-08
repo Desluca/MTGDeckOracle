@@ -1,6 +1,8 @@
 export interface CommanderSpellbookVariantResponse {
   readonly data?: readonly CommanderSpellbookVariant[];
   readonly results?: readonly CommanderSpellbookVariant[];
+  readonly count?: number;
+  readonly next?: string | null;
 }
 
 export interface CommanderSpellbookVariant {

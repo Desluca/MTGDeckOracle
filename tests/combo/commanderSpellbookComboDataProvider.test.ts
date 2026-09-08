@@ -16,7 +16,14 @@ describe("CommanderSpellbookComboDataProvider", () => {
 
     expect(combos).toHaveLength(1);
     expect(combos[0]?.source).toBe("commander_spellbook");
-    expect(fetchFn).toHaveBeenCalledWith(expect.objectContaining({ pathname: "/variants/" }));
+    expect(fetchFn).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname: "/variants/" }),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Accept: "application/json",
+        }),
+      }),
+    );
   });
 
   it("deduplicates combos returned for multiple cards", async () => {
@@ -30,6 +37,35 @@ describe("CommanderSpellbookComboDataProvider", () => {
     const combos = await provider.findCombosForCards(["Isochron Scepter", "Dramatic Reversal"]);
 
     expect(combos).toHaveLength(1);
+  });
+
+  it("paginates the combo catalog until next is empty", async () => {
+    const fetchFn = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+
+      if (url.includes("offset=0") || (!url.includes("offset=") && url.includes("limit=1"))) {
+        return jsonResponse({
+          next: "https://backend.commanderspellbook.com/variants/?limit=1&offset=1",
+          results: [createVariant({ id: "combo-1" })],
+        });
+      }
+
+      return jsonResponse({
+        next: null,
+        results: [
+          createVariant({
+            id: "combo-2",
+            uses: [{ card: { name: "Thassa's Oracle" } }, { card: { name: "Demonic Consultation" } }],
+          }),
+        ],
+      });
+    });
+    const provider = new CommanderSpellbookComboDataProvider({ fetchFn });
+
+    const combos = await provider.findAllCombos({ pageSize: 1, maxPages: 5 });
+
+    expect(combos.map((combo) => combo.id).sort()).toEqual(["combo-1", "combo-2"]);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
   });
 
   it("throws when Commander Spellbook responds with an error", async () => {

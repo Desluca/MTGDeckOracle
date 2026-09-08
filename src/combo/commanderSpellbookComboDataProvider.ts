@@ -9,6 +9,12 @@ export interface CommanderSpellbookComboDataProviderOptions {
   readonly limitPerCard?: number;
 }
 
+export interface CommanderSpellbookCatalogOptions {
+  readonly pageSize?: number;
+  readonly maxPages?: number;
+  readonly delayMs?: number;
+}
+
 const DEFAULT_API_BASE_URL = "https://backend.commanderspellbook.com";
 const DEFAULT_LIMIT_PER_CARD = 50;
 
@@ -40,20 +46,91 @@ export class CommanderSpellbookComboDataProvider implements ComboDataProvider {
     return [...combosById.values()];
   }
 
-  private async fetchVariantsForCard(normalizedCardName: string): Promise<readonly CommanderSpellbookVariant[]> {
-    const query = `card="${normalizedCardName}"`;
-    const url = new URL("/variants/", this.apiBaseUrl);
-    url.searchParams.set("q", query);
-    url.searchParams.set("limit", String(this.limitPerCard));
+  async findAllCombos(options: CommanderSpellbookCatalogOptions = {}): Promise<readonly KnownCombo[]> {
+    const pageSize = options.pageSize ?? 100;
+    const maxPages = options.maxPages ?? Number.POSITIVE_INFINITY;
+    const delayMs = options.delayMs ?? 0;
+    const combosById = new Map<string, KnownCombo>();
+    let offset = 0;
+    let nextUrl: string | undefined;
 
-    const response = await this.fetchFn(url);
+    for (let page = 0; page < maxPages; page += 1) {
+      if (page > 0 && delayMs > 0) {
+        await sleep(delayMs);
+      }
+
+      const url = nextUrl ? new URL(nextUrl) : this.createVariantsUrl({ limit: pageSize, offset });
+      const body = await this.fetchVariants(url);
+      const variants = body.results ?? body.data ?? [];
+
+      for (const variant of variants) {
+        const combo = mapCommanderSpellbookVariant(variant);
+        if (combo.pieces.length > 0) {
+          combosById.set(combo.id, combo);
+        }
+      }
+
+      if (variants.length === 0) {
+        break;
+      }
+
+      if (typeof body.next === "string" && body.next.length > 0) {
+        nextUrl = body.next;
+        continue;
+      }
+
+      if ("next" in body || variants.length < pageSize) {
+        break;
+      }
+
+      offset += pageSize;
+      nextUrl = undefined;
+    }
+
+    return [...combosById.values()];
+  }
+
+  private async fetchVariantsForCard(normalizedCardName: string): Promise<readonly CommanderSpellbookVariant[]> {
+    const url = this.createVariantsUrl({
+      q: `card="${normalizedCardName}"`,
+      limit: this.limitPerCard,
+    });
+    const body = await this.fetchVariants(url);
+    return body.data ?? body.results ?? [];
+  }
+
+  private createVariantsUrl(params: { readonly q?: string; readonly limit: number; readonly offset?: number }): URL {
+    const url = new URL("/variants/", this.apiBaseUrl);
+    if (params.q) {
+      url.searchParams.set("q", params.q);
+    }
+    url.searchParams.set("limit", String(params.limit));
+    if (params.offset !== undefined) {
+      url.searchParams.set("offset", String(params.offset));
+    }
+    return url;
+  }
+
+  private async fetchVariants(url: URL): Promise<CommanderSpellbookVariantResponse> {
+    const response = await this.fetchFn(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": "MTGDeckOracle/0.1.0",
+      },
+    });
+
     if (!response.ok) {
       throw new Error(`Commander Spellbook request failed with ${response.status} ${response.statusText}`);
     }
 
-    const body = (await response.json()) as CommanderSpellbookVariantResponse;
-    return body.data ?? body.results ?? [];
+    return (await response.json()) as CommanderSpellbookVariantResponse;
   }
+}
+
+function sleep(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
 }
 
 export function mapCommanderSpellbookVariant(variant: CommanderSpellbookVariant): KnownCombo {

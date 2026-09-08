@@ -125,6 +125,18 @@ Per generare la cache partendo dal bulk data Scryfall delle carte Oracle legali 
 npm run build-card-tags -- --source scryfall-bulk
 ```
 
+Per aggiungere i tag `combo_piece` dal catalogo Commander Spellbook:
+
+```bash
+npm run build-card-tags -- --source spellbook
+```
+
+Per importare dump tag da hub Archidekt/Moxfield senza sovrascrivere il resto:
+
+```bash
+npm run build-card-tags -- --import path/to/archidekt-tags.json --import path/to/moxfield-tags.json
+```
+
 Di default lo script mergia i nuovi tag con quelli gia' presenti nel file di output, cosi' non elimina dati importati da Archidekt, Moxfield o Commander Spellbook.
 Per rigenerare il file da zero:
 
