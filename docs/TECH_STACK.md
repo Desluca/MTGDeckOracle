@@ -167,3 +167,4 @@ Questo file e' pensato come cache/import per segnali raccolti da hub esterni com
 Il provider puo' anche conservare evidence strutturate con `source` e `confidence`, cosi' una futura pipeline sulle circa 30k carte potra' pesare diversamente tag da Oracle text, hub community, Commander Spellbook e override manuali.
 Il detector combo alimenta lo stesso sistema: dopo avere interrogato Commander Spellbook, le carte presenti in combo rilevate vengono ritaggate come `combo_piece` prima dello scoring finale.
 Lo script `npm run build-card-tags` genera una snapshot `.cache/external-card-tags.json` dalle carte gia' presenti nella cache Scryfall locale, oppure dal bulk data Scryfall con `--source scryfall-bulk`.
+Di default fa merge con l'output esistente, deduplicando per carta, tag e fonte e conservando la confidenza piu' alta; `--replace` permette di rigenerare da zero.

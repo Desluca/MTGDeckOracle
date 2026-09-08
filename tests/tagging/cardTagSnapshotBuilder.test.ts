@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildOracleCardTagSnapshot } from "../../src/tagging/index.js";
+import { buildOracleCardTagSnapshot, mergeCardTagSnapshots } from "../../src/tagging/index.js";
 import { createTestCard } from "../utils/cardFactory.js";
 
 describe("buildOracleCardTagSnapshot", () => {
@@ -27,6 +27,59 @@ describe("buildOracleCardTagSnapshot", () => {
           tags: [
             { tag: "ramp", source: "oracle_text", confidence: 0.9 },
             { tag: "tutor", source: "oracle_text", confidence: 0.9 },
+          ],
+        },
+      ],
+    });
+  });
+});
+
+describe("mergeCardTagSnapshots", () => {
+  it("merges entries by card and keeps the strongest evidence per source", () => {
+    const merged = mergeCardTagSnapshots(
+      [
+        {
+          generatedAt: "old",
+          cards: [
+            {
+              name: "Reanimate",
+              source: "moxfield",
+              tags: [
+                { tag: "Graveyard", confidence: 0.7 },
+                { tag: "Recursion", confidence: 0.8 },
+              ],
+            },
+          ],
+        },
+        {
+          generatedAt: "new",
+          cards: [
+            {
+              name: "Reanimate",
+              source: "archidekt",
+              tags: [{ tag: "Graveyard", confidence: 0.82 }],
+            },
+            {
+              name: "Reanimate",
+              source: "moxfield",
+              tags: [{ tag: "Graveyard", confidence: 0.9 }],
+            },
+          ],
+        },
+      ],
+      "2026-09-08T12:05:00.000Z",
+    );
+
+    expect(merged).toEqual({
+      generatedAt: "2026-09-08T12:05:00.000Z",
+      cards: [
+        {
+          name: "Reanimate",
+          normalizedName: "reanimate",
+          tags: [
+            { tag: "graveyard_synergy", source: "archidekt", confidence: 0.82, rawLabel: "Graveyard" },
+            { tag: "graveyard_synergy", source: "moxfield", confidence: 0.9, rawLabel: "Graveyard" },
+            { tag: "recursion", source: "moxfield", confidence: 0.8, rawLabel: "Recursion" },
           ],
         },
       ],

@@ -231,7 +231,7 @@ function mergeEvidence(
   }
 }
 
-function normalizeExternalTagEvidence(input: ExternalCardTagInput, defaultSource: string): CardTagEvidence | undefined {
+export function normalizeExternalTagEvidence(input: ExternalCardTagInput, defaultSource: string): CardTagEvidence | undefined {
   const rawLabel = typeof input === "string" ? input : input.tag ?? input.label;
   if (!rawLabel) {
     return undefined;

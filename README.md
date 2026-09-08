@@ -125,6 +125,13 @@ Per generare la cache partendo dal bulk data Scryfall delle carte Oracle legali 
 npm run build-card-tags -- --source scryfall-bulk
 ```
 
+Di default lo script mergia i nuovi tag con quelli gia' presenti nel file di output, cosi' non elimina dati importati da Archidekt, Moxfield o Commander Spellbook.
+Per rigenerare il file da zero:
+
+```bash
+npm run build-card-tags -- --replace
+```
+
 ## Rating Lab
 
 Il progetto include anche un sito locale per raccogliere dati utili al rating base delle carte. Mostra due carte random e chiede all'utente quale sia piu' forte.
