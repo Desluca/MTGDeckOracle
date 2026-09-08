@@ -87,6 +87,21 @@ describe("inferCommanderThemes", () => {
       oracleText: "Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.",
       expected: "tribal",
     },
+    {
+      name: "Aesi, Tyrant of Gyre Strait",
+      oracleText: "You may play an additional land on each of your turns. Whenever a land you control enters, you draw a card.",
+      expected: "landfall",
+    },
+    {
+      name: "Brago, King Eternal",
+      oracleText: "Whenever Brago deals combat damage to a player, exile any number of target nonland permanents you control, then return those cards to the battlefield under their owner's control.",
+      expected: "blink",
+    },
+    {
+      name: "Teferi, Mage of Zhalfir",
+      oracleText: "Flash. Creature cards you own that aren't on the battlefield have flash. Each opponent can cast spells only any time they could cast a sorcery.",
+      expected: "control",
+    },
   ] as const)("detects $expected from $name", ({ name, oracleText, expected, ...rest }) => {
     const deck = createResolvedTestDeck({
       commanders: [

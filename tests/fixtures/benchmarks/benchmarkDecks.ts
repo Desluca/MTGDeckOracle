@@ -331,6 +331,27 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     { min: 70, max: 86 },
     3,
   ),
+  loadRealDeckBenchmark(
+    "real_aesi_landfall",
+    "aesi-landfall.deck",
+    "Real Aesi landfall list with extra land drops and landfall payoffs.",
+    { min: 70, max: 86 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_brago_blink",
+    "brago-blink.deck",
+    "Real Brago blink list with ETB value and flicker payoffs.",
+    { min: 70, max: 86 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_teferi_control",
+    "teferi-control.deck",
+    "Real Teferi control list with counters, Game Changers, and Isochron.",
+    { min: 80, max: 92 },
+    4,
+  ),
 ];
 
 interface ProfileDeckOptions {

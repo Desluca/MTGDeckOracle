@@ -83,6 +83,14 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("equipment_synergy");
   }
 
+  if (isLandfall(oracleText)) {
+    tags.add("landfall");
+  }
+
+  if (isBlink(oracleText)) {
+    tags.add("blink");
+  }
+
   if (oracleText.includes("exile target card from a graveyard") || oracleText.includes("exile all graveyards")) {
     tags.add("graveyard_hate");
   }
@@ -265,6 +273,24 @@ function isEquipmentSynergy(oracleText: string, typeLine: string): boolean {
     oracleText.includes("equipped creature") ||
     oracleText.includes("equipment you control") ||
     oracleText.includes("attach") && oracleText.includes("equipment")
+  );
+}
+
+function isLandfall(oracleText: string): boolean {
+  return (
+    oracleText.includes("landfall") ||
+    oracleText.includes("a land you control enters") ||
+    oracleText.includes("land you control enters the battlefield") ||
+    oracleText.includes("whenever a land enters")
+  );
+}
+
+function isBlink(oracleText: string): boolean {
+  return (
+    oracleText.includes("exile") &&
+    oracleText.includes("return") &&
+    oracleText.includes("battlefield") &&
+    (oracleText.includes("you control") || oracleText.includes("owner's control") || oracleText.includes("under your control"))
   );
 }
 

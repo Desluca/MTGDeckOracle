@@ -163,6 +163,21 @@ describe("evaluateCardContribution", () => {
       commanderTags: ["tribal_synergy" as const],
       packageTag: "tribal_synergy" as const,
     },
+    {
+      commanderName: "Aesi, Tyrant of Gyre Strait",
+      commanderOracleText: "Whenever a land you control enters, you draw a card.",
+      packageTag: "landfall" as const,
+    },
+    {
+      commanderName: "Brago, King Eternal",
+      commanderOracleText: "Exile any number of target nonland permanents you control, then return those cards to the battlefield under their owner's control.",
+      packageTag: "blink" as const,
+    },
+    {
+      commanderName: "Teferi, Mage of Zhalfir",
+      commanderOracleText: "Each opponent can cast spells only any time they could cast a sorcery.",
+      packageTag: "counterspell" as const,
+    },
   ])("lets $commanderName support a larger $packageTag package", ({ commanderName, commanderOracleText, packageTag, ...rest }) => {
     const { themed, generic } = packageDecks({
       commanderName,
@@ -182,7 +197,7 @@ describe("evaluateCardContribution", () => {
 function packageDecks(options: {
   readonly commanderName: string;
   readonly commanderOracleText: string;
-  readonly packageTag: "token_synergy" | "lifegain" | "aristocrats" | "counters_synergy" | "enchantment_synergy" | "equipment_synergy" | "tribal_synergy" | "spellslinger";
+  readonly packageTag: "token_synergy" | "lifegain" | "aristocrats" | "counters_synergy" | "enchantment_synergy" | "equipment_synergy" | "tribal_synergy" | "spellslinger" | "landfall" | "blink" | "counterspell";
   readonly packageCount: number;
   readonly commanderTypeLine?: string;
   readonly commanderTags?: readonly ("tribal_synergy")[];

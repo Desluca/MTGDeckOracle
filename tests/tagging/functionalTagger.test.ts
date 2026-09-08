@@ -184,6 +184,10 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(createTestCard({ name: "Counterspell", oracleText: "Counter target spell." }))).not.toContain("counters_synergy");
     expect(inferFunctionalTags(createTestCard({ name: "Pacifism", typeLine: "Enchantment — Aura", oracleText: "Enchant creature. Enchanted creature can't attack or block." }))).not.toContain("enchantment_synergy");
     expect(inferFunctionalTags(createTestCard({ name: "Nontoken Anthem", oracleText: "Nontoken creatures you control get +1/+1." }))).not.toContain("token_synergy");
+    expect(inferFunctionalTags(createTestCard({ name: "Path to Exile", oracleText: "Exile target creature. Its controller may search their library for a basic land card." }))).not.toContain("blink");
+    expect(inferFunctionalTags(createTestCard({ name: "Cultivate", oracleText: "Search your library for up to two basic land cards, put one onto the battlefield tapped and the other into your hand." }))).not.toContain("landfall");
+    expect(inferFunctionalTags(createTestCard({ name: "Lotus Cobra", oracleText: "Landfall — Whenever a land you control enters, add one mana of any color." }))).toContain("landfall");
+    expect(inferFunctionalTags(createTestCard({ name: "Cloudshift", oracleText: "Exile target creature you control, then return that card to the battlefield under its owner's control." }))).toContain("blink");
   });
 
   it("tags win conditions, stax, recursion and graveyard hate", () => {

@@ -165,10 +165,6 @@ I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, c
 `recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
 `--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
 `--notes` / `--score-notes` passa testo extra a `scoreNotes` nella pipeline.
-I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
-`recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
-`--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
-`--notes` / `--score-notes` passa testo extra a `scoreNotes` nella pipeline.
 Il seed alimenta anche i lookup per carta quando la cache disco e' vuota, senza bloccare le query live per carte sconosciute.
 La cache disco in `.cache/commander-spellbook-combos.json` ha sempre priorita' sul seed.
 `npm run build-combo-cache` puo' popolare il catalogo completo in locale; `.cache/` e' gitignored.
@@ -176,14 +172,15 @@ Il seed in `knownComboSeed` e' il catalogo riproducibile di CI e `--offline`: po
 Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
 Il tag `stax` copre anche testi tipo "each player can't" e "cost {1} more".
 Enchantress e aristocrats riconoscono anche "cast an enchantment" e "creature dying".
+Landfall e blink riconoscono "a land you control enters" e exile-then-return sul permanente che controlli; Cultivate e Path to Exile restano fuori.
 
 CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
 
 ## Prossimo Step Tecnico
 
-Dopo liste artifact, enchantress e aristocrats:
+Dopo liste landfall, blink e control:
 
-1. altre liste competitive (landfall, blink, control);
+1. altre liste competitive (reanimator, tribal);
 2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online
@@ -209,7 +206,7 @@ Il core scoring puo' ricevere un `CardRatingProvider` esterno.
 I rating Elo raccolti dal Rating Lab vengono normalizzati in valori carta 0-10, mantenendo 1500 come valore neutro circa 5/10.
 Questo permette al componente `card_quality` di usare dati reali raccolti dal laboratorio senza rendere il motore dipendente dalla UI o dal database.
 
-Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment o tribal, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
+Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment, tribal, landfall, blink o control, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
 `classifyCommanderBracket` assegna il tavolo Wizards da Game Changers, combo da due carte, extra turn e mass land denial. Il voto resta indipendente.
 Il piano di gioco premia densita' di ruoli e copertura delle categorie chiave, non il semplice conteggio di carte taggate.
 La mana base abbassa il target di terre se il mazzo ha gia' ramp/fast mana, cosi' un profilo cEDH con poche terre non viene trattato come un precon senza accelerazione.

@@ -10,7 +10,10 @@ export type CommanderTheme =
   | "counters"
   | "enchantments"
   | "equipment"
-  | "tribal";
+  | "tribal"
+  | "landfall"
+  | "blink"
+  | "control";
 
 interface CommanderThemeRule {
   readonly theme: CommanderTheme;
@@ -85,6 +88,25 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     commanderTags: ["tribal_synergy"],
     oracleHints: [],
   },
+  {
+    theme: "landfall",
+    targetId: "landfall",
+    commanderTags: ["landfall"],
+    oracleHints: ["landfall", "a land you control enters"],
+  },
+  {
+    theme: "blink",
+    targetId: "blink",
+    commanderTags: ["blink"],
+    oracleHints: [],
+    oracleMatcher: isBlinkOracle,
+  },
+  {
+    theme: "control",
+    targetId: "control",
+    commanderTags: ["counterspell"],
+    oracleHints: ["cast spells only any time", "each opponent can cast spells only"],
+  },
 ];
 
 export function inferCommanderThemes(deckCards: readonly DeckCard[]): readonly CommanderTheme[] {
@@ -130,4 +152,13 @@ export function mentionsCreatureType(text: string, subtype: string): boolean {
 
 function mentionsTokenWord(oracleText: string): boolean {
   return /\btokens?\b/.test(oracleText);
+}
+
+function isBlinkOracle(oracleText: string): boolean {
+  return (
+    oracleText.includes("exile") &&
+    oracleText.includes("return") &&
+    oracleText.includes("battlefield") &&
+    (oracleText.includes("you control") || oracleText.includes("owner's control") || oracleText.includes("under your control"))
+  );
 }

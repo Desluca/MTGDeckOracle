@@ -45,6 +45,8 @@ export type FunctionalTag =
   | "equipment_synergy"
   | "tribal_synergy"
   | "stax"
+  | "landfall"
+  | "blink"
   | "combo_piece"
   | "combo_payoff"
   | "win_condition"
