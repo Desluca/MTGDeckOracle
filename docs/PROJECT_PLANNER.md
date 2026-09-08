@@ -215,26 +215,31 @@ DeckAnalysis
 
 La suite vive in `tests/fixtures/benchmarks/`. I profili sintetici coprono precon, casual, high power, cEDH-like, 200 carte illegali, Whtz legale, combo frammentate, mana base pessima e identita' colore illegale.
 
-Liste reali oracle-tagged in `tests/fixtures/decks/real/`:
+Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = costruzione, non fascia di voto):
 
-- `pantlaza-precon.deck` (bracket atteso 4);
-- `muldrotha-casual.deck` (4);
+- `pantlaza-precon.deck` (2);
+- `pantlaza-precon-modded.deck` (2);
+- `muldrotha-casual.deck` (3);
 - `kinnan-high-power.deck` (4, range 86-91 nei benchmark di scoring);
 - `thrasios-tymna-cedh.deck` (5);
-- `gishath-bad-mana.deck` (4);
-- `whtz-120.deck` (3, oversized legale);
-- `kinnan-illegal-size.deck`;
-- `pantlaza-illegal-color.deck`.
+- `kess-spellslinger.deck` (4);
+- `grand-arbiter-stax.deck` (3);
+- `light-paws-voltron.deck` (2);
+- `rhys-tokens.deck` (2);
+- `gishath-bad-mana.deck` (2);
+- `whtz-120.deck` (4, oversized legale con Isochron);
+- `kinnan-illegal-size.deck` (4);
+- `pantlaza-illegal-color.deck` (2).
 
 I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
 
-Prossimo passo calibrazione: altre liste reali (stax, voltron, tokens, spellslinger, precon modificato) e unificare il path di scoring con `analyzeCommanderDeck` cosi' CLI e test non divergono sul tag `combo_piece`.
+Prossimo passo calibrazione: altre liste competitive e unificare il path di scoring con `analyzeCommanderDeck` cosi' CLI e test non divergono sul tag `combo_piece`.
 
 ## Decisioni Prese
 
 - Linguaggio e test: TypeScript, Vitest, `tsconfig` strict, Node 22.
 - Dati carte: Scryfall API con cache file in `.cache/scryfall-cards.json`.
-- Combo: Commander Spellbook via API ufficiale, cache file, seed in `knownComboSeed`.
+- Combo: Commander Spellbook via API ufficiale, cache file, seed versionato in `knownComboSeed` (Isochron, Thoracle, Breach, Dualcaster).
 - Rating persistenti: JSON locale in sviluppo, PostgreSQL in produzione (`DATABASE_URL`).
 - Report mazzo: CLI oggi; UI web dopo M6.
 - Rating Lab: sito Node gia' deployabile (Render).

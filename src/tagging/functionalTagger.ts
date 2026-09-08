@@ -87,7 +87,7 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("graveyard_hate");
   }
 
-  if (oracleText.includes("spells cost") || oracleText.includes("players can't") || oracleText.includes("opponents can't")) {
+  if (isStax(oracleText)) {
     tags.add("stax");
   }
 
@@ -205,6 +205,17 @@ function isArtifactSynergy(card: Card, oracleText: string): boolean {
     oracleText.includes("artifact creatures") ||
     oracleText.includes("affinity for artifacts") ||
     (card.rules.types.includes("artifact") && oracleText.includes("other artifacts"))
+  );
+}
+
+function isStax(oracleText: string): boolean {
+  return (
+    oracleText.includes("spells cost") ||
+    oracleText.includes("player can't") ||
+    oracleText.includes("players can't") ||
+    oracleText.includes("opponents can't") ||
+    oracleText.includes("cost {1} more") ||
+    oracleText.includes("can't untap more")
   );
 }
 

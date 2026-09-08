@@ -275,6 +275,41 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     { min: 0, max: 40 },
     2,
   ),
+  loadRealDeckBenchmark(
+    "real_pantlaza_precon_modded",
+    "pantlaza-precon-modded.deck",
+    "Pantlaza precon with efficient ramp and draw swaps, still no Game Changers.",
+    { min: 72, max: 88 },
+    2,
+  ),
+  loadRealDeckBenchmark(
+    "real_kess_spellslinger",
+    "kess-spellslinger.deck",
+    "Real Kess spellslinger list with Breach and Dualcaster lines.",
+    { min: 80, max: 91 },
+    4,
+  ),
+  loadRealDeckBenchmark(
+    "real_grand_arbiter_stax",
+    "grand-arbiter-stax.deck",
+    "Real Grand Arbiter stax list with a few Game Changers and no early two-card infinite.",
+    { min: 74, max: 88 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_light_paws_voltron",
+    "light-paws-voltron.deck",
+    "Real Light-Paws aura voltron list with no Game Changers.",
+    { min: 70, max: 86 },
+    2,
+  ),
+  loadRealDeckBenchmark(
+    "real_rhys_tokens",
+    "rhys-tokens.deck",
+    "Real Rhys token list with doublers and a combat payoff.",
+    { min: 74, max: 88 },
+    2,
+  ),
 ];
 
 interface ProfileDeckOptions {

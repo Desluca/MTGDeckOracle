@@ -1,6 +1,11 @@
 import { normalizeLookupName } from "../card-data/index.js";
 import type { KnownCombo } from "../domain/index.js";
 
+/**
+ * Checked-in Spellbook subset used by tests, `--offline`, and CI.
+ * Keep this small and tied to fixture lists; the full catalog stays in
+ * gitignored `.cache/commander-spellbook-combos.json` via `npm run build-combo-cache`.
+ */
 export const knownComboSeed: readonly KnownCombo[] = [
   {
     id: "isochron-dramatic",
@@ -54,6 +59,33 @@ export const knownComboSeed: readonly KnownCombo[] = [
     estimatedSpeed: "instant",
     estimatedClosingTurnMana: 4,
     description: "Empty the library with Tainted Pact, then win with Oracle.",
+  },
+  {
+    id: "breach-led-brain-freeze",
+    name: "Underworld Breach + Lion's Eye Diamond + Brain Freeze",
+    source: "commander_spellbook",
+    pieces: [
+      { cardName: "Underworld Breach", required: true },
+      { cardName: "Lion's Eye Diamond", required: true },
+      { cardName: "Brain Freeze", required: true },
+    ],
+    outcomes: ["wins_game", "infinite_mill"],
+    estimatedSpeed: "instant",
+    estimatedClosingTurnMana: 4,
+    description: "Storm mill with LED rituals from the graveyard under Breach.",
+  },
+  {
+    id: "dualcaster-twinflame",
+    name: "Dualcaster Mage + Twinflame",
+    source: "commander_spellbook",
+    pieces: [
+      { cardName: "Dualcaster Mage", required: true },
+      { cardName: "Twinflame", required: true },
+    ],
+    outcomes: ["infinite_tokens", "wins_game"],
+    estimatedSpeed: "sorcery",
+    estimatedClosingTurnMana: 6,
+    description: "Copy Twinflame targeting Dualcaster Mage for infinite hasty copies.",
   },
 ];
 

@@ -143,8 +143,13 @@ tests/
     decks/
       real/
         kinnan-high-power.deck
+        kess-spellslinger.deck
+        grand-arbiter-stax.deck
+        light-paws-voltron.deck
+        rhys-tokens.deck
         muldrotha-casual.deck
         pantlaza-precon.deck
+        pantlaza-precon-modded.deck
         pantlaza-illegal-color.deck
         kinnan-illegal-size.deck
         gishath-bad-mana.deck
@@ -158,15 +163,17 @@ La CLI `npm run analyze` orchestra `analyzeCommanderDeck`.
 Il seed alimenta anche i lookup per carta quando la cache disco e' vuota, senza bloccare le query live per carte sconosciute.
 La cache disco in `.cache/commander-spellbook-combos.json` ha sempre priorita' sul seed.
 `npm run build-combo-cache` puo' popolare il catalogo completo in locale; `.cache/` e' gitignored.
+Il seed in `knownComboSeed` e' il catalogo riproducibile di CI e `--offline`: poche linee usate dalle fixture, non il dump Spellbook.
 Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
+Il tag `stax` copre anche testi tipo "each player can't" e "cost {1} more".
 
 CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
 
 ## Prossimo Step Tecnico
 
-Dopo CLI con `--notes`, `--offline` su carte e combo, pipeline e liste reali:
+Dopo seed Spellbook allargato e liste reali per stax, voltron, tokens, spellslinger e precon-modded:
 
-1. catalogo Spellbook riproducibile e altre liste competitive;
+1. altre liste competitive e recommendation filtrate sul colore;
 2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online

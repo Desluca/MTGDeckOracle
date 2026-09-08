@@ -48,6 +48,35 @@ describe("analyzeCommanderDeck", () => {
     expect(fetchFn).not.toHaveBeenCalled();
     expect(result.report.explanation.scoreNotes).toContain("High-power del martedi, non cEDH.");
   });
+
+  it("scores a real Kess list from the expanded seed catalog without calling Spellbook", async () => {
+    const rawText = await readFile(join(process.cwd(), "tests", "fixtures", "decks", "real", "kess-spellslinger.deck"), "utf8");
+    const fetchFn = vi.fn();
+    const cache = new FileComboCache(join(await createTempDir(), "combos.json"), {
+      seed: createComboSeedCache(),
+      useSeedCatalog: true,
+    });
+
+    const result = await analyzeCommanderDeck({
+      rawText,
+      sourceUrl: "kess-spellslinger.deck",
+      cardDataSource: new InMemoryCardDataSource(createCardMap(stapleCards)),
+      comboDataProvider: new CommanderSpellbookComboDataProvider({ fetchFn, cache }),
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.report.score.finalScore).toBeGreaterThanOrEqual(80);
+    expect(result.report.score.finalScore).toBeLessThanOrEqual(93);
+    expect(result.report.score.commanderBracket).toBe(4);
+    expect(result.report.detectedCombos.map((combo) => combo.combo.id)).toEqual(
+      expect.arrayContaining(["isochron-dramatic", "breach-led-brain-freeze", "dualcaster-twinflame"]),
+    );
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
 });
 
 async function createTempDir(): Promise<string> {

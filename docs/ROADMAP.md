@@ -10,12 +10,12 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | M1 Parser e validazione | Fatto (liste testuali; niente import URL) |
 | M2 Analisi strutturale | Fatto nel motore (curva e ruoli nel report CLI; grafici UI dopo) |
 | M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
-| M4 Combo e sinergie | Parziale: adapter Spellbook, seed, cache, valutatore; catalogo pieno non in repo |
+| M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
 | M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
-| M6 Calibrazione | In corso: profili sintetici + 8 liste reali; bracket da costruzione, non da fascia di voto |
+| M6 Calibrazione | In corso: profili sintetici + 13 liste reali; bracket da costruzione, non da fascia di voto |
 | M7 Miglioramenti avanzati | Quasi no (recommendation strutturali si; URL, budget, versioning no) |
 
-Prossimi slice: catalogo Spellbook riproducibile, altre liste reali. UI report solo dopo.
+Prossimi slice: altre liste competitive, recommendation filtrate sul colore. UI report solo dopo.
 
 ## Milestone 0 - Fondamenta
 
@@ -102,7 +102,7 @@ Output:
 
 ## Milestone 4 - Combo e Sinergie
 
-Stato: parziale. `CommanderSpellbookComboDataProvider` + `FileComboCache` + seed Isochron/Thoracle. `--offline` usa il seed. Il catalogo completo si ottiene con `npm run build-combo-cache` e resta in `.cache/` (gitignored).
+Stato: parziale. `CommanderSpellbookComboDataProvider` + `FileComboCache` + seed Isochron/Thoracle/Breach/Dualcaster. `--offline` usa il seed. Il catalogo completo si ottiene con `npm run build-combo-cache` e resta in `.cache/` (gitignored). Il seed resta piccolo e versionato; non si committano migliaia di combo Spellbook.
 
 Obiettivo: riconoscere non solo carte forti, ma interazioni reali.
 
@@ -147,9 +147,9 @@ Output:
 
 Stato: in corso. Si lavora su questa milestone prima di M5.
 
-Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e liste reali in `tests/fixtures/decks/real/` (Pantlaza, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, due illegalita').
+Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 13 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, due illegalita').
 
-Aperto: catalogo Spellbook piccolo in seed vs live; archetipi extra (stax, voltron, tokens). Il bracket non e' piu' una fascia del voto.
+Aperto: seed Spellbook vs catalogo live; altre liste competitive. Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 

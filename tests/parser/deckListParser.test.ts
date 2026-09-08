@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -10,6 +10,11 @@ function readDeckFixture(fileName: string): string {
   return readFileSync(join(fixturesPath, fileName), "utf8");
 }
 
+const hundredCardSingleCommanderDecks = readdirSync(join(fixturesPath, "real"))
+  .filter((fileName) => fileName.endsWith(".deck"))
+  .filter((fileName) => !["thrasios-tymna-cedh.deck", "whtz-120.deck", "kinnan-illegal-size.deck"].includes(fileName))
+  .map((fileName) => `real/${fileName}`);
+
 describe("parseDeckList", () => {
   it("parses a minimal valid fixture", () => {
     const parsed = parseDeckList(readDeckFixture("minimal-valid.deck"));
@@ -20,7 +25,7 @@ describe("parseDeckList", () => {
     expect(parsed.totalQuantity).toBe(100);
   });
 
-  for (const fileName of ["real/pantlaza-precon.deck", "real/muldrotha-casual.deck", "real/kinnan-high-power.deck", "real/gishath-bad-mana.deck", "real/pantlaza-illegal-color.deck"]) {
+  for (const fileName of hundredCardSingleCommanderDecks) {
     it(`parses ${fileName} as a 100-card commander list`, () => {
       const parsed = parseDeckList(readDeckFixture(fileName));
 

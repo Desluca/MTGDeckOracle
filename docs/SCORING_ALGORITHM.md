@@ -415,14 +415,13 @@ Il mazzo ottiene 67/100. Il piano token con il comandante e' chiaro e ha buone p
 Suite automatica:
 
 - profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts`;
-- liste reali in `tests/fixtures/decks/real/` (Pantlaza, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz, illegalita').
+- liste reali in `tests/fixtures/decks/real/` (13 liste: precon, precon-modded, casual, high-power, cEDH, stax, voltron, tokens, spellslinger, mana pessima, Whtz, illegalita').
 
-Ogni benchmark ha `expected_score_range` e `expected_bracket`. Mancano ancora spiegazioni manuali per lista (`expected_main_findings`) e archetipi extra.
+Ogni benchmark ha `expected_score_range` e `expected_bracket`. Mancano ancora spiegazioni manuali per lista (`expected_main_findings`).
 
 Da coprire meglio:
 
-- precon modificati;
-- stax, voltron, tokens, spellslinger;
+- altre liste competitive;
 - allineamento CLI vs fixture sul tag `combo_piece`.
 
 ## Implementazione Attuale

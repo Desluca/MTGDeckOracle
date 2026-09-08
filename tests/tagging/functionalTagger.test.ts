@@ -188,7 +188,15 @@ describe("inferFunctionalTags", () => {
 
   it("tags win conditions, stax, recursion and graveyard hate", () => {
     expect(inferFunctionalTags(createTestCard({ name: "Approach of the Second Sun", oracleText: "If this spell was cast from your hand and you've cast another spell named Approach of the Second Sun this game, you win the game." }))).toContain("win_condition");
-    expect(inferFunctionalTags(createTestCard({ name: "Rule of Law", oracleText: "Each player can't cast more than one spell each turn. Opponents can't cast spells during your turn." }))).toContain("stax");
+    expect(inferFunctionalTags(createTestCard({ name: "Rule of Law", oracleText: "Each player can't cast more than one spell each turn." }))).toContain("stax");
+    expect(
+      inferFunctionalTags(
+        createTestCard({
+          name: "Grand Arbiter Augustin IV",
+          oracleText: "White spells you cast cost {1} less to cast. Blue spells you cast cost {1} less to cast. Spells your opponents cast cost {1} more to cast.",
+        }),
+      ),
+    ).toContain("stax");
     expect(inferFunctionalTags(createTestCard({ name: "Animate Dead", oracleText: "Enchant creature card in a graveyard. When Animate Dead enters, return enchanted creature card from your graveyard to the battlefield." }))).toEqual(expect.arrayContaining(["recursion", "graveyard_synergy"]));
     expect(inferFunctionalTags(createTestCard({ name: "Rest in Peace", oracleText: "Exile all graveyards. If a card or token would be put into a graveyard from anywhere, exile it instead." }))).toEqual(expect.arrayContaining(["graveyard_hate", "graveyard_synergy"]));
   });
