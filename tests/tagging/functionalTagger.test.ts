@@ -18,7 +18,18 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(card)).not.toContain("fast_mana");
   });
 
-  it("tags fast mana", () => {
+  it("tags ritual mana as ramp or fast mana", () => {
+    const darkRitual = createTestCard({
+      name: "Dark Ritual",
+      manaValue: 1,
+      typeLine: "Instant",
+      oracleText: "Add {B}{B}{B}.",
+    });
+
+    expect(inferFunctionalTags(darkRitual)).toContain("fast_mana");
+  });
+
+  it("tags artifact fast mana", () => {
     const card = createTestCard({ name: "Sol Ring", manaValue: 1, typeLine: "Artifact", oracleText: "{T}: Add {C}{C}." });
 
     expect(inferFunctionalTags(card)).toContain("fast_mana");

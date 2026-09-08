@@ -156,7 +156,7 @@ function isRamp(card: Card, oracleText: string): boolean {
     return true;
   }
 
-  if (oracleText.includes("{t}: add")) {
+  if (oracleText.includes("{t}: add") || oracleText.includes("add {")) {
     return true;
   }
 

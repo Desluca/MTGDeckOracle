@@ -20,7 +20,7 @@ describe("parseDeckList", () => {
     expect(parsed.totalQuantity).toBe(100);
   });
 
-  for (const fileName of ["real/pantlaza-precon.deck", "real/muldrotha-casual.deck", "real/kinnan-high-power.deck"]) {
+  for (const fileName of ["real/pantlaza-precon.deck", "real/muldrotha-casual.deck", "real/kinnan-high-power.deck", "real/gishath-bad-mana.deck", "real/pantlaza-illegal-color.deck"]) {
     it(`parses ${fileName} as a 100-card commander list`, () => {
       const parsed = parseDeckList(readDeckFixture(fileName));
 
@@ -30,6 +30,28 @@ describe("parseDeckList", () => {
       expect(parsed.totalQuantity).toBe(100);
     });
   }
+
+  it("parses a two-commander cEDH list", () => {
+    const parsed = parseDeckList(readDeckFixture("real/thrasios-tymna-cedh.deck"));
+
+    expect(parsed.issues.filter((issue) => issue.severity === "error")).toEqual([]);
+    expect(parsed.sectionCounts.commander).toBe(2);
+    expect(parsed.sectionCounts.mainboard).toBe(98);
+    expect(parsed.totalQuantity).toBe(100);
+  });
+
+  it("parses an oversized Whtz list", () => {
+    const parsed = parseDeckList(readDeckFixture("real/whtz-120.deck"));
+
+    expect(parsed.sectionCounts.commander).toBe(1);
+    expect(parsed.totalQuantity).toBe(120);
+  });
+
+  it("parses an illegally oversized Kinnan list", () => {
+    const parsed = parseDeckList(readDeckFixture("real/kinnan-illegal-size.deck"));
+
+    expect(parsed.totalQuantity).toBe(101);
+  });
 
   it("parses quantity followed by card name", () => {
     const parsed = parseDeckList("1 Sol Ring");

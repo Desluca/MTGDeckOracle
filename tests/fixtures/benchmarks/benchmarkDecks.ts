@@ -238,6 +238,41 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     { min: 86, max: 91 },
     4,
   ),
+  loadRealDeckBenchmark(
+    "real_thrasios_cedh",
+    "thrasios-tymna-cedh.deck",
+    "Real Thrasios/Tymna cEDH list with Thoracle lines.",
+    { min: 91, max: 98 },
+    5,
+  ),
+  loadRealDeckBenchmark(
+    "real_gishath_bad_mana",
+    "gishath-bad-mana.deck",
+    "Real Gishath list with too few lands and a high curve.",
+    { min: 70, max: 82 },
+    4,
+  ),
+  loadRealDeckBenchmark(
+    "real_whtz_120",
+    "whtz-120.deck",
+    "Legal Whtz 120-card list: no legality cap, consistency still suffers.",
+    { min: 45, max: 62 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_kinnan_illegal_size",
+    "kinnan-illegal-size.deck",
+    "Kinnan list illegally at 101 cards.",
+    { min: 0, max: 70 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_pantlaza_illegal_color",
+    "pantlaza-illegal-color.deck",
+    "Pantlaza list with Counterspell outside Naya identity.",
+    { min: 0, max: 40 },
+    2,
+  ),
 ];
 
 interface ProfileDeckOptions {

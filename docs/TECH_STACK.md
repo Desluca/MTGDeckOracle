@@ -141,13 +141,18 @@ tests/
         kinnan-high-power.deck
         muldrotha-casual.deck
         pantlaza-precon.deck
+        pantlaza-illegal-color.deck
+        kinnan-illegal-size.deck
+        gishath-bad-mana.deck
+        thrasios-tymna-cedh.deck
+        whtz-120.deck
 ```
 
 ## Prossimo Step Tecnico
 
 Dopo parser, validatore, card-data, combo, cache Commander Spellbook, tagger, consistenza, scoring, spiegazioni, CLI, benchmark sintetici e tre decklist reali con oracle text, il prossimo blocco da implementare e':
 
-1. allargare le decklist reali (cEDH Thrasios, illegal/Whtz) e ricalibrare i range;
+1. cache Spellbook popolata in CI/locale e altre decklist competitive di riferimento;
 2. UI web solo dopo il nucleo di scoring.
 
 ## Deploy Online

@@ -12,7 +12,16 @@ describe("stapleCards", () => {
     const cardMap = createCardMap(stapleCards);
     const names = new Set<string>();
 
-    for (const fileName of ["pantlaza-precon.deck", "muldrotha-casual.deck", "kinnan-high-power.deck"]) {
+    for (const fileName of [
+      "pantlaza-precon.deck",
+      "muldrotha-casual.deck",
+      "kinnan-high-power.deck",
+      "thrasios-tymna-cedh.deck",
+      "gishath-bad-mana.deck",
+      "whtz-120.deck",
+      "kinnan-illegal-size.deck",
+      "pantlaza-illegal-color.deck",
+    ]) {
       const parsed = parseDeckList(readFileSync(join(process.cwd(), "tests", "fixtures", "decks", "real", fileName), "utf8"));
       for (const name of uniqueNormalizedNames(parsed.lines.map((line) => line.normalizedName))) {
         names.add(name);

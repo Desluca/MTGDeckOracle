@@ -28,4 +28,30 @@ export const fixtureCombos: readonly KnownCombo[] = [
     estimatedClosingTurnMana: 4,
     description: "Infinite mana plus Ballista removes the table.",
   },
+  {
+    id: "thoracle-consult",
+    name: "Thassa's Oracle + Demonic Consultation",
+    source: "commander_spellbook",
+    pieces: [
+      { cardName: "Thassa's Oracle", required: true },
+      { cardName: "Demonic Consultation", required: true },
+    ],
+    outcomes: ["wins_game"],
+    estimatedSpeed: "instant",
+    estimatedClosingTurnMana: 3,
+    description: "Exile the library and win with Oracle's devotion check.",
+  },
+  {
+    id: "thoracle-tainted-pact",
+    name: "Thassa's Oracle + Tainted Pact",
+    source: "commander_spellbook",
+    pieces: [
+      { cardName: "Thassa's Oracle", required: true },
+      { cardName: "Tainted Pact", required: true },
+    ],
+    outcomes: ["wins_game"],
+    estimatedSpeed: "instant",
+    estimatedClosingTurnMana: 4,
+    description: "Empty the library with Tainted Pact, then win with Oracle.",
+  },
 ];

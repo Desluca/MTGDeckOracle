@@ -42,13 +42,25 @@ describe("scoring benchmarks", () => {
     expect(highPower.finalScore).toBeLessThan(cedh.finalScore);
   });
 
-  it("orders real oracle-tagged lists from precon to high power", () => {
+  it("orders real oracle-tagged lists from precon to cEDH", () => {
     const pantlaza = scoreById("real_pantlaza_precon");
     const muldrotha = scoreById("real_muldrotha_casual");
     const kinnan = scoreById("real_kinnan_high_power");
+    const thrasios = scoreById("real_thrasios_cedh");
 
     expect(pantlaza.finalScore).toBeLessThan(muldrotha.finalScore);
     expect(muldrotha.finalScore).toBeLessThan(kinnan.finalScore);
+    expect(kinnan.finalScore).toBeLessThan(thrasios.finalScore);
+  });
+
+  it("caps illegal real lists below their legal counterparts", () => {
+    expect(scoreById("real_kinnan_illegal_size").finalScore).toBeLessThan(scoreById("real_kinnan_high_power").finalScore);
+    expect(scoreById("real_pantlaza_illegal_color").finalScore).toBeLessThan(scoreById("real_pantlaza_precon").finalScore);
+    expect(scoreById("real_gishath_bad_mana").finalScore).toBeLessThan(scoreById("real_pantlaza_precon").finalScore);
+  });
+
+  it("keeps a legal oversized Whtz list above an illegal color-identity list", () => {
+    expect(scoreById("real_whtz_120").finalScore).toBeGreaterThan(scoreById("real_pantlaza_illegal_color").finalScore);
   });
 });
 
