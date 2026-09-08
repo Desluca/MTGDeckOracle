@@ -63,6 +63,20 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(card)).toContain("graveyard_synergy");
   });
 
+  it("tags artifact, token, spellslinger and lifegain synergies", () => {
+    expect(inferFunctionalTags(createTestCard({ name: "Artifact Payoff", oracleText: "Artifacts you control have hexproof." }))).toContain("artifact_synergy");
+    expect(inferFunctionalTags(createTestCard({ name: "Token Maker", oracleText: "Create two 1/1 white Soldier creature tokens." }))).toContain("token_synergy");
+    expect(inferFunctionalTags(createTestCard({ name: "Storm Payoff", oracleText: "Whenever you cast an instant or sorcery spell, copy it." }))).toContain("spellslinger");
+    expect(inferFunctionalTags(createTestCard({ name: "Soul Warden", oracleText: "Whenever another creature enters, you gain 1 life." }))).toContain("lifegain");
+  });
+
+  it("tags aristocrats, counters, enchantress and equipment synergies", () => {
+    expect(inferFunctionalTags(createTestCard({ name: "Blood Artist", oracleText: "Whenever a creature you control dies, each opponent loses 1 life." }))).toContain("aristocrats");
+    expect(inferFunctionalTags(createTestCard({ name: "Hardened Scales", oracleText: "If one or more +1/+1 counters would be put on a creature you control, put that many plus one +1/+1 counters on it instead." }))).toContain("counters_synergy");
+    expect(inferFunctionalTags(createTestCard({ name: "Enchantress", oracleText: "Whenever you cast an enchantment spell, draw a card. Enchantments you control have hexproof." }))).toContain("enchantment_synergy");
+    expect(inferFunctionalTags(createTestCard({ name: "Sword", typeLine: "Artifact — Equipment", oracleText: "Equipped creature gets +2/+2. Equip {2}" }))).toContain("equipment_synergy");
+  });
+
   it("keeps existing manual tags", () => {
     const card = createTestCard({ name: "Manual Combo Piece", functionalTags: ["combo_piece"] });
 
@@ -79,6 +93,28 @@ describe("inferFunctionalTags", () => {
     const taggedDeck = tagDeckCards(deck);
 
     expect(taggedDeck.cards[1]?.card.evaluation.functionalTags).toContain("fast_mana");
+  });
+
+  it("tags tribal cards that match a commander who cares about its creature type", () => {
+    const deck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Krenko, Mob Boss",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Goblin Warrior",
+          oracleText: "Tap: Create X 1/1 red Goblin creature tokens, where X is the number of Goblins you control.",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Goblin Guide", typeLine: "Creature — Goblin Warrior" })),
+        mainboardCard(createTestCard({ name: "Random Bear", typeLine: "Creature — Bear" })),
+      ],
+    });
+
+    const taggedDeck = tagDeckCards(deck);
+
+    expect(taggedDeck.cards.find((deckCard) => deckCard.card.identity.name === "Goblin Guide")?.card.evaluation.functionalTags).toContain("tribal_synergy");
+    expect(taggedDeck.cards.find((deckCard) => deckCard.card.identity.name === "Random Bear")?.card.evaluation.functionalTags).not.toContain("tribal_synergy");
   });
 
   it("merges external provider tags with inferred card tags", async () => {

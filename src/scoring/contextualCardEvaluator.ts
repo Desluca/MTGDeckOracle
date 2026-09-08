@@ -1,5 +1,6 @@
 import type { DeckCard, DeckList, FunctionalTag } from "../domain/index.js";
 import { eloRatingToBasePowerRating, type CardRatingProvider } from "../ratings/index.js";
+import { commanderThemeMultiplier, inferCommanderThemes } from "./commanderThemes.js";
 
 export interface CardContribution {
   readonly cardName: string;
@@ -26,6 +27,15 @@ const ROLE_TARGETS: readonly RoleTarget[] = [
   { id: "interaction", tags: ["spot_removal", "board_wipe", "counterspell", "graveyard_hate"], idealPerHundred: 9, label: "interaction" },
   { id: "resilience", tags: ["protection", "recursion"], idealPerHundred: 6, label: "resilience" },
   { id: "graveyard", tags: ["graveyard_synergy", "recursion", "graveyard_hate"], idealPerHundred: 6, label: "graveyard package" },
+  { id: "artifacts", tags: ["artifact_synergy"], idealPerHundred: 8, label: "artifact package" },
+  { id: "tokens", tags: ["token_synergy"], idealPerHundred: 8, label: "token package" },
+  { id: "spellslinger", tags: ["spellslinger"], idealPerHundred: 8, label: "spellslinger package" },
+  { id: "lifegain", tags: ["lifegain"], idealPerHundred: 8, label: "lifegain package" },
+  { id: "aristocrats", tags: ["aristocrats"], idealPerHundred: 8, label: "aristocrats package" },
+  { id: "counters", tags: ["counters_synergy"], idealPerHundred: 8, label: "counters package" },
+  { id: "enchantments", tags: ["enchantment_synergy"], idealPerHundred: 8, label: "enchantment package" },
+  { id: "equipment", tags: ["equipment_synergy"], idealPerHundred: 8, label: "equipment package" },
+  { id: "tribal", tags: ["tribal_synergy"], idealPerHundred: 12, label: "tribal package" },
   { id: "win_condition", tags: ["win_condition", "combo_payoff"], idealPerHundred: 4, label: "win condition" },
   { id: "tutor", tags: ["tutor"], idealPerHundred: 5, label: "tutor" },
   { id: "mana_base", tags: ["land", "mana_fixing"], idealPerHundred: 37, label: "mana base" },
@@ -114,20 +124,7 @@ function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deck
 }
 
 function commanderTargetMultiplier(target: RoleTarget, deckCards: readonly DeckCard[]): number {
-  if (target.id === "graveyard" && commanderSupportsGraveyard(deckCards)) {
-    return 2;
-  }
-
-  return 1;
-}
-
-function commanderSupportsGraveyard(deckCards: readonly DeckCard[]): boolean {
-  return deckCards
-    .filter((deckCard) => deckCard.section === "commander")
-    .some((deckCard) =>
-      deckCard.card.evaluation.functionalTags.some((tag) => tag === "graveyard_synergy" || tag === "recursion") ||
-      deckCard.card.rules.oracleText.toLowerCase().includes("graveyard"),
-    );
+  return commanderThemeMultiplier(target.id, inferCommanderThemes(deckCards));
 }
 
 function commanderDeckCards(deck: DeckList): readonly DeckCard[] {

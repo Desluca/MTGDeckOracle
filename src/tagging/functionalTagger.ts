@@ -51,6 +51,38 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("graveyard_synergy");
   }
 
+  if (isArtifactSynergy(card, oracleText)) {
+    tags.add("artifact_synergy");
+  }
+
+  if (oracleText.includes("create") && oracleText.includes("token")) {
+    tags.add("token_synergy");
+  }
+
+  if (isSpellslinger(oracleText)) {
+    tags.add("spellslinger");
+  }
+
+  if (isLifegain(oracleText)) {
+    tags.add("lifegain");
+  }
+
+  if (isAristocrats(oracleText)) {
+    tags.add("aristocrats");
+  }
+
+  if (oracleText.includes("+1/+1 counter") || oracleText.includes("proliferate")) {
+    tags.add("counters_synergy");
+  }
+
+  if (isEnchantmentSynergy(card, oracleText, typeLine)) {
+    tags.add("enchantment_synergy");
+  }
+
+  if (isEquipmentSynergy(oracleText, typeLine)) {
+    tags.add("equipment_synergy");
+  }
+
   if (oracleText.includes("exile target card from a graveyard") || oracleText.includes("exile all graveyards")) {
     tags.add("graveyard_hate");
   }
@@ -88,7 +120,8 @@ export function tagDeckCards(
     ...deckCard,
     card: tagCard(deckCard.card, externalTagsByNormalizedName.get(deckCard.card.identity.normalizedName) ?? []),
   }));
-  const taggedCommanders = taggedCards.filter((deckCard) => deckCard.section === "commander");
+  const tribalTaggedCards = applyCommanderTribalTags(taggedCards);
+  const taggedCommanders = tribalTaggedCards.filter((deckCard) => deckCard.section === "commander");
 
   return {
     ...deck,
@@ -96,7 +129,7 @@ export function tagDeckCards(
       ...deck.commander,
       commanders: taggedCommanders,
     },
-    cards: taggedCards,
+    cards: tribalTaggedCards,
   };
 }
 
@@ -157,4 +190,116 @@ function isProtection(oracleText: string): boolean {
     oracleText.includes("prevent all damage") ||
     oracleText.includes("phase out")
   );
+}
+
+function isArtifactSynergy(card: Card, oracleText: string): boolean {
+  return (
+    oracleText.includes("artifacts you control") ||
+    oracleText.includes("artifact you control") ||
+    oracleText.includes("cast an artifact") ||
+    oracleText.includes("artifact creatures") ||
+    oracleText.includes("affinity for artifacts") ||
+    (card.rules.types.includes("artifact") && oracleText.includes("other artifacts"))
+  );
+}
+
+function isSpellslinger(oracleText: string): boolean {
+  return (
+    oracleText.includes("instant or sorcery") ||
+    oracleText.includes("instants and sorceries") ||
+    oracleText.includes("magecraft") ||
+    oracleText.includes("prowess") ||
+    oracleText.includes("copy target instant") ||
+    oracleText.includes("copy target sorcery") ||
+    oracleText.includes("noncreature spell")
+  );
+}
+
+function isLifegain(oracleText: string): boolean {
+  return (
+    oracleText.includes("you gain") && oracleText.includes("life") ||
+    oracleText.includes("life you gain") ||
+    oracleText.includes("lifelink")
+  );
+}
+
+function isAristocrats(oracleText: string): boolean {
+  return (
+    oracleText.includes("sacrifice a creature") ||
+    oracleText.includes("whenever a creature you control dies") ||
+    oracleText.includes("whenever you sacrifice")
+  );
+}
+
+function isEnchantmentSynergy(card: Card, oracleText: string, typeLine: string): boolean {
+  return (
+    oracleText.includes("enchantments you control") ||
+    oracleText.includes("enchantment you control") ||
+    oracleText.includes("constellation") ||
+    typeLine.includes("enchantress")
+  );
+}
+
+function isEquipmentSynergy(oracleText: string, typeLine: string): boolean {
+  return (
+    typeLine.includes("equipment") ||
+    oracleText.includes("equipped creature") ||
+    oracleText.includes("equipment you control") ||
+    oracleText.includes("attach") && oracleText.includes("equipment")
+  );
+}
+
+function applyCommanderTribalTags(deckCards: DeckList["cards"]): DeckList["cards"] {
+  const commanderTypes = deckCards
+    .filter((deckCard) => deckCard.section === "commander")
+    .flatMap((deckCard) => deckCard.card.rules.subtypes)
+    .filter((subtype, index, subtypes) => subtypes.indexOf(subtype) === index);
+
+  if (commanderTypes.length === 0) {
+    return deckCards;
+  }
+
+  const commanderCaresAboutTribe = deckCards
+    .filter((deckCard) => deckCard.section === "commander")
+    .some((deckCard) => commanderTypes.some((subtype) => mentionsCreatureType(deckCard.card.rules.oracleText.toLowerCase(), subtype)));
+
+  if (!commanderCaresAboutTribe) {
+    return deckCards;
+  }
+
+  return deckCards.map((deckCard) => {
+    if (deckCard.section !== "mainboard") {
+      return deckCard;
+    }
+
+    const typeLine = deckCard.card.rules.typeLine.toLowerCase();
+    const oracleText = deckCard.card.rules.oracleText.toLowerCase();
+    const matchesTribe = commanderTypes.some(
+      (subtype) =>
+        deckCard.card.rules.subtypes.some((cardSubtype) => cardSubtype.toLowerCase() === subtype.toLowerCase()) ||
+        mentionsCreatureType(typeLine, subtype) ||
+        mentionsCreatureType(oracleText, subtype),
+    );
+
+    if (!matchesTribe || deckCard.card.evaluation.functionalTags.includes("tribal_synergy")) {
+      return deckCard;
+    }
+
+    return {
+      ...deckCard,
+      card: {
+        ...deckCard.card,
+        evaluation: {
+          ...deckCard.card.evaluation,
+          functionalTags: mergeFunctionalTags(deckCard.card.evaluation.functionalTags, ["tribal_synergy"]),
+        },
+      },
+    };
+  });
+}
+
+function mentionsCreatureType(text: string, subtype: string): boolean {
+  const lower = subtype.toLowerCase();
+  const plural = lower.endsWith("f") ? `${lower.slice(0, -1)}ves` : `${lower}s`;
+  return text.includes(lower) || text.includes(plural);
 }

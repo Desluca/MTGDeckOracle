@@ -14,6 +14,7 @@ export interface TestCardOptions {
   readonly manaValue?: number;
   readonly functionalTags?: readonly FunctionalTag[];
   readonly basePowerRating?: number;
+  readonly subtypes?: readonly string[];
 }
 
 export function createTestCard(options: TestCardOptions): Card {
@@ -34,7 +35,7 @@ export function createTestCard(options: TestCardOptions): Card {
       colorIdentity,
       supertypes: typeLine.toLowerCase().includes("legendary") ? ["legendary"] : [],
       types,
-      subtypes: [],
+      subtypes: options.subtypes ?? parseSubtypes(typeLine),
       typeLine,
       oracleText: options.oracleText ?? "",
       commanderLegality: options.commanderLegality ?? "legal",
@@ -46,6 +47,11 @@ export function createTestCard(options: TestCardOptions): Card {
       ...(options.basePowerRating !== undefined ? { basePowerRating: options.basePowerRating } : {}),
     },
   };
+}
+
+function parseSubtypes(typeLine: string): readonly string[] {
+  const [, subtypeLine] = typeLine.split(/\s+[—–-]\s+/);
+  return subtypeLine?.split(/\s+/).filter(Boolean) ?? [];
 }
 
 export function createCardMap(cards: readonly Card[]): ReadonlyMap<string, Card> {

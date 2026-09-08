@@ -82,4 +82,61 @@ describe("evaluateCardContribution", () => {
 
     expect(graveyardContribution.contextualValue).toBeGreaterThan(genericContribution.contextualValue);
   });
+
+  it("lets an artifact commander support a larger artifact package", () => {
+    const artifactCommanderDeck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Urza, Lord High Artificer",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Human Artificer",
+          functionalTags: ["artifact_synergy"],
+          oracleText: "Tap an untapped artifact you control: Add {C}.",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Artifact Payoff", functionalTags: ["artifact_synergy"], basePowerRating: 6 }), 12),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
+      ],
+    });
+    const genericCommanderDeck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Artifact Payoff", functionalTags: ["artifact_synergy"], basePowerRating: 6 }), 12),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
+      ],
+    });
+
+    const artifactContribution = evaluateCardContribution(artifactCommanderDeck.cards[1]!, artifactCommanderDeck.cards);
+    const genericContribution = evaluateCardContribution(genericCommanderDeck.cards[1]!, genericCommanderDeck.cards);
+
+    expect(artifactContribution.contextualValue).toBeGreaterThan(genericContribution.contextualValue);
+  });
+
+  it("lets a spellslinger commander support a larger instant-sorcery package", () => {
+    const spellslingerDeck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Mizzix of the Izmagnus",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Goblin Wizard",
+          oracleText: "Whenever you cast an instant or sorcery spell with mana value greater than the number of experience counters you have, you get an experience counter.",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Storm Payoff", functionalTags: ["spellslinger"], basePowerRating: 6 }), 12),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
+      ],
+    });
+    const genericCommanderDeck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Storm Payoff", functionalTags: ["spellslinger"], basePowerRating: 6 }), 12),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 87),
+      ],
+    });
+
+    const spellslingerContribution = evaluateCardContribution(spellslingerDeck.cards[1]!, spellslingerDeck.cards);
+    const genericContribution = evaluateCardContribution(genericCommanderDeck.cards[1]!, genericCommanderDeck.cards);
+
+    expect(spellslingerContribution.contextualValue).toBeGreaterThan(genericContribution.contextualValue);
+  });
 });
