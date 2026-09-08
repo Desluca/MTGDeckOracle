@@ -1,6 +1,25 @@
 # Roadmap
 
+Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0→M7: la calibrazione (M6) parte prima della UI report (M5).
+
+## Stato Attuale
+
+| Milestone | Stato |
+| --- | --- |
+| M0 Fondamenta | Fatto |
+| M1 Parser e validazione | Fatto (liste testuali; niente import URL) |
+| M2 Analisi strutturale | Fatto nel motore (curva e ruoli nel report CLI; grafici UI dopo) |
+| M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
+| M4 Combo e sinergie | Parziale: adapter Spellbook, seed, cache, valutatore; catalogo pieno non in repo |
+| M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
+| M6 Calibrazione | In corso: profili sintetici + 8 liste reali; bracket da costruzione, non da fascia di voto |
+| M7 Miglioramenti avanzati | Quasi no (recommendation strutturali si; URL, budget, versioning no) |
+
+Prossimi slice: catalogo Spellbook riproducibile, altre liste reali. UI report solo dopo.
+
 ## Milestone 0 - Fondamenta
+
+Stato: fatto.
 
 Obiettivo: chiarire dominio, dati e criteri di valutazione.
 
@@ -21,6 +40,8 @@ Output:
 
 ## Milestone 1 - Parser e Validazione
 
+Stato: fatto per liste testuali. Import da URL Moxfield/Archidekt resta M7.
+
 Obiettivo: trasformare una decklist in dati affidabili.
 
 Attivita':
@@ -39,6 +60,8 @@ Output:
 
 ## Milestone 2 - Analisi Strutturale
 
+Stato: fatto nel motore. I grafici arrivano con M5.
+
 Obiettivo: produrre una panoramica utile del mazzo.
 
 Attivita':
@@ -56,6 +79,8 @@ Output:
 - prime spiegazioni testuali.
 
 ## Milestone 3 - Scoring Engine MVP
+
+Stato: fatto. Il voto 0-100 e il bracket ufficiale sono separati. Game Changers e combo da due carte alzano il minimo di costruzione; 4 vs 5 usa il voto.
 
 Obiettivo: generare un voto 0-100 spiegabile.
 
@@ -76,6 +101,8 @@ Output:
 - test specifici su mazzi da 100, 120, 150 e 200 carte.
 
 ## Milestone 4 - Combo e Sinergie
+
+Stato: parziale. `CommanderSpellbookComboDataProvider` + `FileComboCache` + seed Isochron/Thoracle. `--offline` usa il seed. Il catalogo completo si ottiene con `npm run build-combo-cache` e resta in `.cache/` (gitignored).
 
 Obiettivo: riconoscere non solo carte forti, ma interazioni reali.
 
@@ -98,7 +125,9 @@ Output:
 
 ## Milestone 5 - UI MVP
 
-Obiettivo: rendere il motore usabile da un giocatore.
+Stato: non iniziato. Il Rating Lab (`/rating-lab`) raccoglie Elo carte; non e' la pagina di analisi mazzo.
+
+Obiettivo: rendere il motore usabile da un giocatore senza CLI.
 
 Attivita':
 
@@ -115,6 +144,12 @@ Output:
 - esperienza completa end-to-end.
 
 ## Milestone 6 - Calibrazione
+
+Stato: in corso. Si lavora su questa milestone prima di M5.
+
+Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e liste reali in `tests/fixtures/decks/real/` (Pantlaza, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, due illegalita').
+
+Aperto: catalogo Spellbook piccolo in seed vs live; archetipi extra (stax, voltron, tokens). Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 
@@ -133,6 +168,8 @@ Output:
 - regressioni automatiche.
 
 ## Milestone 7 - Miglioramenti Avanzati
+
+Stato: non iniziato, tranne recommendation strutturali gia' in CLI (ancora poco filtrate su identita' colore).
 
 Obiettivo: aumentare qualita' e profondita' del report.
 

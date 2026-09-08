@@ -24,6 +24,8 @@ describe("generateDeckScoreExplanation", () => {
     const explanation = generateDeckScoreExplanation({ score, legality, structure, consistency });
 
     expect(explanation.summary).toContain(`${score.finalScore}/100`);
+    expect(explanation.summary).toContain("Bracket");
+    expect(explanation.scoreNotes).toContain(`${score.finalScore}/100`);
     expect(explanation.summary).toContain("Accesso solido a terre nei primi turni");
     expect(explanation.summary).toContain("Debole su");
     expect(explanation.recommendations.length).toBeGreaterThan(0);

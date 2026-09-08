@@ -72,7 +72,7 @@ describe("scoreCommanderDeck", () => {
     expect(score.components.find((component) => component.category === "win_conditions")?.rawScore).toBe(92);
   });
 
-  it("assigns brackets from final score", () => {
+  it("assigns exhibition when legality makes the list unplayable", () => {
     const score = scoreCommanderDeck({
       deck: createBalancedDeck(),
       legality: {
@@ -88,7 +88,22 @@ describe("scoreCommanderDeck", () => {
       },
     });
 
+    expect(score.finalScore).toBeLessThanOrEqual(20);
     expect(score.commanderBracket).toBe(1);
+  });
+
+  it("keeps a strong score in Core when there are no Game Changers", () => {
+    const score = scoreCommanderDeck({
+      deck: createBalancedDeck(),
+      legality: legalReport(),
+      scoreNotes: "Calibrazione manuale: precon modificato del tavolo Core.",
+    });
+
+    expect(score.finalScore).toBeGreaterThan(50);
+    expect(score.commanderBracket).toBe(2);
+    expect(score.bracket.label).toBe("Core");
+    expect(score.explanation).toContain("non da una fascia del voto");
+    expect(score.explanation).toContain("Calibrazione manuale: precon modificato del tavolo Core.");
   });
 
   it("uses stronger base ratings to raise card quality", () => {

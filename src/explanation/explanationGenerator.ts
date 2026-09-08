@@ -4,6 +4,7 @@ import type { ComboEvaluation, CommanderLegalityReport, ConsistencySignal, Score
 
 export interface DeckScoreExplanation {
   readonly summary: string;
+  readonly scoreNotes: string;
   readonly strengths: readonly string[];
   readonly weaknesses: readonly string[];
   readonly recommendations: readonly string[];
@@ -15,6 +16,7 @@ export interface GenerateExplanationInput {
   readonly structure: DeckStructureSummary;
   readonly consistency: ConsistencyAnalysis;
   readonly comboEvaluations?: readonly ComboEvaluation[];
+  readonly scoreNotes?: string;
 }
 
 const SIGNAL_LABELS: Readonly<Record<string, string>> = {
@@ -47,6 +49,7 @@ export function generateDeckScoreExplanation(input: GenerateExplanationInput): D
 
   return {
     summary: createSummary(input),
+    scoreNotes: input.scoreNotes ?? input.score.explanation,
     strengths,
     weaknesses,
     recommendations,
@@ -57,7 +60,7 @@ function createSummary(input: GenerateExplanationInput): string {
   const legalityText = input.legality.isLegal
     ? "Il mazzo risulta legale rispetto ai controlli disponibili"
     : "Il mazzo ha problemi di legalita' o struttura";
-  const headline = `${legalityText} e ottiene ${input.score.finalScore}/100, con bracket stimato ${input.score.commanderBracket}.`;
+  const headline = `${legalityText} e ottiene ${input.score.finalScore}/100. Bracket ${input.score.commanderBracket} (${input.score.bracket.label}) dalle regole di costruzione, indipendente dal voto.`;
   const points = collectSummaryPoints(input);
 
   if (points.length === 0) {

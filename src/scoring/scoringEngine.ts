@@ -1,7 +1,8 @@
 import type {
-  CommanderBracket,
+  ComboEvaluation,
   CommanderLegalityReport,
   DeckList,
+  DetectedCombo,
   FunctionalTag,
   ScoreBreakdown,
   ScoreCategory,
@@ -10,7 +11,7 @@ import type {
   ScoringWeights,
 } from "../domain/index.js";
 import { defaultScoringWeights } from "../domain/index.js";
-import type { ComboEvaluation } from "../domain/index.js";
+import { classifyCommanderBracket, composeScoreNotes } from "./commanderBracket.js";
 import { analyzeDeckStructure } from "../analysis/index.js";
 import type { ConsistencyAnalysis } from "../consistency/index.js";
 import { analyzeConsistency } from "../consistency/index.js";
@@ -21,9 +22,11 @@ export interface ScoreCommanderDeckInput {
   readonly deck: DeckList;
   readonly legality: CommanderLegalityReport;
   readonly comboEvaluations?: readonly ComboEvaluation[];
+  readonly detectedCombos?: readonly DetectedCombo[];
   readonly consistency?: ConsistencyAnalysis;
   readonly ratingProvider?: CardRatingProvider;
   readonly weights?: ScoringWeights;
+  readonly scoreNotes?: string;
 }
 
 export function scoreCommanderDeck(input: ScoreCommanderDeckInput): ScoreBreakdown {
@@ -55,14 +58,27 @@ export function scoreCommanderDeck(input: ScoreCommanderDeckInput): ScoreBreakdo
   const weightedScore = components.reduce((total, item) => total + item.weightedScore, 0);
   const penaltyPoints = penalties.reduce((total, penalty) => total + penalty.points, 0);
   const finalScore = clampScore(Math.min(input.legality.legalityCap, weightedScore) - penaltyPoints);
+  const bracket = classifyCommanderBracket({
+    deck: input.deck,
+    finalScore,
+    legality: input.legality,
+    ...(input.detectedCombos ? { detectedCombos: input.detectedCombos } : {}),
+    ...(input.comboEvaluations ? { comboEvaluations: input.comboEvaluations } : {}),
+  });
+  const explanation = composeScoreNotes({
+    finalScore,
+    bracket,
+    ...(input.scoreNotes ? { customNotes: input.scoreNotes } : {}),
+  });
 
   return {
     finalScore,
-    commanderBracket: bracketFromScore(finalScore),
+    commanderBracket: bracket.bracket,
+    bracket,
     legalityCap: input.legality.legalityCap,
     components,
     penalties,
-    explanation: explainFinalScore(finalScore, input.legality.legalityCap, penalties),
+    explanation,
   };
 }
 
@@ -210,34 +226,6 @@ function explainLegality(legality: CommanderLegalityReport): string {
   }
 
   return `Il mazzo ha ${legality.issues.length} issue e un cap di legalita' pari a ${legality.legalityCap}.`;
-}
-
-function explainFinalScore(score: number, legalityCap: number, penalties: readonly ScorePenalty[]): string {
-  if (penalties.length === 0 && legalityCap === 100) {
-    return `Il mazzo ottiene ${score}/100 sulla base dei sottopunteggi analizzati.`;
-  }
-
-  return `Il mazzo ottiene ${score}/100 dopo penalita' e cap di legalita' ${legalityCap}.`;
-}
-
-function bracketFromScore(score: number): CommanderBracket {
-  if (score <= 20) {
-    return 1;
-  }
-
-  if (score <= 50) {
-    return 2;
-  }
-
-  if (score <= 76) {
-    return 3;
-  }
-
-  if (score <= 91) {
-    return 4;
-  }
-
-  return 5;
 }
 
 function clampScore(score: number): number {

@@ -44,6 +44,7 @@ export function loadRealDeckBenchmark(
     deck,
     legality,
     ...(comboEvaluations.length > 0 ? { comboEvaluations } : {}),
+    ...(detectedCombos.length > 0 ? { detectedCombos } : {}),
     expectedScoreRange,
     ...(expectedBracket !== undefined ? { expectedBracket } : {}),
   };

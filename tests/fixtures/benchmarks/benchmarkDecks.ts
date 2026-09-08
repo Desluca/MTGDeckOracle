@@ -1,4 +1,4 @@
-import type { CommanderLegalityReport, ComboEvaluation, DeckCard, FunctionalTag } from "../../../src/domain/index.js";
+import type { CommanderLegalityReport, ComboEvaluation, DeckCard, DetectedCombo, FunctionalTag } from "../../../src/domain/index.js";
 import { createTestCard } from "../../utils/cardFactory.js";
 import { createResolvedTestDeck, mainboardCard } from "../../utils/resolvedDeckFactory.js";
 import type { ScoringBenchmark } from "./benchmarkTypes.js";
@@ -23,7 +23,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     }),
     legality: legalReport(),
     expectedScoreRange: { min: 45, max: 68 },
-    expectedBracket: 3,
+    expectedBracket: 2,
   },
   {
     id: "casual_tuned",
@@ -45,7 +45,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     }),
     legality: legalReport(),
     expectedScoreRange: { min: 62, max: 82 },
-    expectedBracket: 4,
+    expectedBracket: 2,
   },
   {
     id: "high_power",
@@ -66,6 +66,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("high-power-combo", 88)],
+    detectedCombos: [twoCardWinCombo("high-power-combo", 4)],
     expectedScoreRange: { min: 78, max: 91 },
     expectedBracket: 4,
   },
@@ -88,6 +89,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("cedh-combo", 97, "instant")],
+    detectedCombos: [twoCardWinCombo("cedh-combo", 3)],
     expectedScoreRange: { min: 86, max: 100 },
     expectedBracket: 5,
   },
@@ -143,7 +145,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("battle-of-wits-line", 82)],
     expectedScoreRange: { min: 55, max: 82 },
-    expectedBracket: 3,
+    expectedBracket: 2,
   },
   {
     id: "combo_fragments",
@@ -164,7 +166,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("partial-combo", 25)],
     expectedScoreRange: { min: 38, max: 62 },
-    expectedBracket: 3,
+    expectedBracket: 2,
   },
   {
     id: "bad_mana_base",
@@ -222,14 +224,14 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "pantlaza-precon.deck",
     "Real Pantlaza dinosaur list tagged from oracle text.",
     { min: 70, max: 85 },
-    4,
+    2,
   ),
   loadRealDeckBenchmark(
     "real_muldrotha_casual",
     "muldrotha-casual.deck",
     "Real Muldrotha graveyard list tagged from oracle text.",
     { min: 78, max: 90 },
-    4,
+    3,
   ),
   loadRealDeckBenchmark(
     "real_kinnan_high_power",
@@ -250,21 +252,21 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "gishath-bad-mana.deck",
     "Real Gishath list with too few lands and a high curve.",
     { min: 70, max: 82 },
-    4,
+    2,
   ),
   loadRealDeckBenchmark(
     "real_whtz_120",
     "whtz-120.deck",
     "Legal Whtz 120-card list: no legality cap, consistency still suffers.",
     { min: 45, max: 62 },
-    3,
+    4,
   ),
   loadRealDeckBenchmark(
     "real_kinnan_illegal_size",
     "kinnan-illegal-size.deck",
     "Kinnan list illegally at 101 cards.",
     { min: 0, max: 70 },
-    3,
+    4,
   ),
   loadRealDeckBenchmark(
     "real_pantlaza_illegal_color",
@@ -369,5 +371,24 @@ function comboEvaluation(id: string, impactScore: number, speed: ComboEvaluation
     protectionScore: 20,
     fragilityScore: 25,
     explanation: "Benchmark combo evaluation.",
+  };
+}
+
+function twoCardWinCombo(id: string, estimatedClosingTurnMana: number): DetectedCombo {
+  return {
+    combo: {
+      id,
+      name: id,
+      source: "manual",
+      pieces: [
+        { cardName: "Combo Piece A", required: true },
+        { cardName: "Combo Piece B", required: true },
+      ],
+      outcomes: ["wins_game"],
+      estimatedClosingTurnMana,
+    },
+    completeness: "complete",
+    presentPieces: ["Combo Piece A", "Combo Piece B"],
+    missingPieces: [],
   };
 }

@@ -10,6 +10,8 @@ MTG Deck Oracle e' un assistente di analisi per mazzi Commander. Il prodotto dev
 
 La valutazione deve essere comprensibile, motivata e utile. Un numero da 0 a 100 senza spiegazione non basta.
 
+Stato rispetto al codice: il flusso sotto e' coperto dalla CLI e da `analyzeCommanderDeck`. L'ingresso "incolla lista sul sito" e' Milestone 5. L'import da URL Moxfield/Archidekt e' Milestone 7.
+
 ## Utenti Target
 
 - Giocatori casual che vogliono capire il power level del mazzo.
@@ -23,7 +25,7 @@ La valutazione deve essere comprensibile, motivata e utile. Un numero da 0 a 100
 2. Il sistema normalizza i nomi delle carte e identifica comandante, main deck e eventuali sezioni.
 3. Il sistema verifica legalita' e struttura della lista.
 4. Il sistema analizza categorie funzionali, curva, sinergie, combo e consistenza.
-5. Il sistema produce voto, bracket stimato e spiegazione.
+5. Il sistema produce voto, bracket di costruzione e spiegazione scritta del voto.
 6. L'utente puo' esplorare dettagli e suggerimenti.
 
 ## Requisiti Funzionali

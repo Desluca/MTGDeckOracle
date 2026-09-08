@@ -8,6 +8,7 @@ describe("reportRenderer", () => {
 
     expect(markdown).toContain("# MTG Deck Oracle Report");
     expect(markdown).toContain("- Score: 72/100");
+    expect(markdown).toContain("Commander bracket: 2 (Core)");
     expect(markdown).toContain("## Score Breakdown");
     expect(markdown).toContain("## Consistency");
     expect(markdown).toContain("## Detailed Recommendations");
@@ -28,6 +29,7 @@ describe("reportRenderer", () => {
       ...createReport(),
       explanation: {
         summary: "<script>alert('x')</script>",
+        scoreNotes: "Note",
         strengths: [],
         weaknesses: [],
         recommendations: [],
@@ -81,7 +83,16 @@ function createReport(): DeckReport {
     comboEvaluations: [],
     score: {
       finalScore: 72,
-      commanderBracket: 3,
+      commanderBracket: 2,
+      bracket: {
+        bracket: 2,
+        label: "Core",
+        minimumBracket: 2,
+        gameChangerCount: 0,
+        gameChangerNames: [],
+        signals: [],
+        explanation: "Nessun Game Changer.",
+      },
       legalityCap: 100,
       components: [
         {
@@ -98,6 +109,7 @@ function createReport(): DeckReport {
     },
     explanation: {
       summary: "Il mazzo ottiene 72/100.",
+      scoreNotes: "Il voto 72/100 e' indipendente dal bracket 2.",
       strengths: ["Buona consistenza."],
       weaknesses: ["Interaction migliorabile."],
       recommendations: ["Aggiungere removal."],

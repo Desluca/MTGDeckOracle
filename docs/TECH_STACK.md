@@ -21,19 +21,17 @@ Motivi:
 - Test con Vitest.
 - Configurazione strict in `tsconfig.json`.
 
-### Backend Futuro
+### Backend (Rating Lab e API)
 
-- Node.js con API HTTP.
+- Node.js con server HTTP in `src/rating-lab/server.ts`.
 - Adapter Scryfall per dati carte.
-- Adapter combo per fonti esterne affidabili.
-- Cache locale per ridurre chiamate esterne e rendere i risultati riproducibili.
-- PostgreSQL per dati persistenti online, a partire dai rating raccolti dal Rating Lab.
+- Adapter combo Commander Spellbook.
+- Cache locale in `.cache/` per risultati riproducibili.
+- PostgreSQL per i rating Elo quando c'e' `DATABASE_URL`.
 
-### Frontend Futuro
+### Frontend Report Mazzo
 
-- React o Next.js.
-- Pagina import decklist.
-- Pagina report con voto, bracket, curva, combo, punti forti e punti deboli.
+Non iniziato. Stack ancora aperto (React o Next.js). Il Rating Lab ha gia' HTML servito dal server Node.
 
 ## Principio Architetturale
 
@@ -54,7 +52,7 @@ raw decklist
   -> report UI
 ```
 
-## Cartelle Iniziali
+## Layout Sorgenti
 
 ```text
 src/
@@ -66,6 +64,7 @@ src/
     fileCardCache.ts
     inMemoryCardCache.ts
     inMemoryCardDataSource.ts
+    cacheOnlyCardDataSource.ts
     scryfallBulkCardSource.ts
     scryfallCardDataSource.ts
     scryfallCardMapper.ts
@@ -154,31 +153,36 @@ tests/
 ```
 
 La CLI `npm run analyze` orchestra `analyzeCommanderDeck`.
-`--offline` o `MTG_DECK_ORACLE_OFFLINE=1` usa il catalogo combo seed in `knownComboSeed` senza chiamare Commander Spellbook.
+`--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
+`--notes` / `--score-notes` passa testo extra a `scoreNotes` nella pipeline.
 Il seed alimenta anche i lookup per carta quando la cache disco e' vuota, senza bloccare le query live per carte sconosciute.
 La cache disco in `.cache/commander-spellbook-combos.json` ha sempre priorita' sul seed.
-`npm run build-combo-cache` puo' popolare il catalogo completo in locale.
+`npm run build-combo-cache` puo' popolare il catalogo completo in locale; `.cache/` e' gitignored.
 Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
 
 CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
 
 ## Prossimo Step Tecnico
 
-Dopo parser, validatore, pipeline di analisi, seed Spellbook, CI e decklist reali con oracle text, il prossimo blocco da implementare e':
+Dopo CLI con `--notes`, `--offline` su carte e combo, pipeline e liste reali:
 
-1. catalogo Spellbook completo in locale (`npm run build-combo-cache`) e altre liste competitive di riferimento;
-2. UI web solo dopo il nucleo di scoring.
+1. catalogo Spellbook riproducibile e altre liste competitive;
+2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online
 
 La prima base deployabile usa un server Node.js compilato in `dist/` e PostgreSQL quando e' presente `DATABASE_URL`.
 
-Rotte principali:
+Rotte principali del Rating Lab:
 
 - `/`: homepage MTG Deck Oracle;
-- `/rating-lab`: interfaccia Rating Lab;
+- `/rating-lab`: interfaccia confronti Elo;
+- `/leaderboard`: classifica carte;
+- `/graph`: attivita' voti;
 - `/api/rating-lab/*`: API del laboratorio;
 - `/health`: health check per hosting provider.
+
+Non c'e' una rotta di analisi mazzo: quello resta CLI finche' non esiste M5.
 
 In sviluppo locale, se `DATABASE_URL` non e' configurato, il laboratorio usa ancora il file JSON in `.cache/`.
 
@@ -189,6 +193,7 @@ I rating Elo raccolti dal Rating Lab vengono normalizzati in valori carta 0-10, 
 Questo permette al componente `card_quality` di usare dati reali raccolti dal laboratorio senza rendere il motore dipendente dalla UI o dal database.
 
 Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment o tribal, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
+`classifyCommanderBracket` assegna il tavolo Wizards da Game Changers, combo da due carte, extra turn e mass land denial. Il voto resta indipendente.
 Il piano di gioco premia densita' di ruoli e copertura delle categorie chiave, non il semplice conteggio di carte taggate.
 La mana base abbassa il target di terre se il mazzo ha gia' ramp/fast mana, cosi' un profilo cEDH con poche terre non viene trattato come un precon senza accelerazione.
 

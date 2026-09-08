@@ -30,6 +30,7 @@ describe("analyzeCommanderDeck", () => {
       sourceUrl: "kinnan-high-power.deck",
       cardDataSource: new InMemoryCardDataSource(createCardMap(stapleCards)),
       comboDataProvider: new CommanderSpellbookComboDataProvider({ fetchFn, cache }),
+      scoreNotes: "High-power del martedi, non cEDH.",
     });
 
     expect(result.ok).toBe(true);
@@ -45,6 +46,7 @@ describe("analyzeCommanderDeck", () => {
       expect.arrayContaining(["isochron-dramatic", "isochron-dramatic-ballista"]),
     );
     expect(fetchFn).not.toHaveBeenCalled();
+    expect(result.report.explanation.scoreNotes).toContain("High-power del martedi, non cEDH.");
   });
 });
 

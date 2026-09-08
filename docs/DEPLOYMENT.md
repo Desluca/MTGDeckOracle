@@ -1,5 +1,7 @@
 # Deployment
 
+Il deploy pubblico e' il **Rating Lab** (confronti Elo tra carte), non la UI di analisi mazzo. L'analyzer resta CLI (`npm run analyze`) finche' non esiste la Milestone 5.
+
 MTG Deck Oracle puo' andare online come applicazione Node.js con PostgreSQL.
 
 La prima versione pubblica espone:
@@ -76,3 +78,5 @@ npm start
 Il dominio non e' obbligatorio per il primo deploy. Puoi usare l'URL gratuito del provider.
 
 Quando vuoi un dominio vero, compra `mtgdeckoracle.com` o simile e punta il DNS al provider scelto. Il codice non cambia.
+
+CI su GitHub Actions (`.github/workflows/ci.yml`) non fa il deploy: esegue `npm ci`, `npm test` e `npm run typecheck` su Node 22.

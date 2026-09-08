@@ -1,7 +1,7 @@
 import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-import { CachedCardDataSource, FileCardCache, ScryfallCardDataSource } from "../card-data/index.js";
+import { CachedCardDataSource, CacheOnlyCardDataSource, FileCardCache, ScryfallCardDataSource } from "../card-data/index.js";
 import { parseAnalyzeDeckCliOptions } from "./cliOptions.js";
 import { CommanderSpellbookComboDataProvider, FileComboCache, createComboSeedCache } from "../combo/index.js";
 import { analyzeCommanderDeck } from "../pipeline/index.js";
@@ -14,22 +14,22 @@ async function main(): Promise<void> {
   const options = parseAnalyzeDeckCliOptions(process.argv.slice(2));
 
   if (!options.deckFilePath) {
-    console.error("Usage: npm run analyze -- <decklist-file> [--format json|markdown|html] [--offline]");
+    console.error("Usage: npm run analyze -- <decklist-file> [--format json|markdown|html] [--offline] [--notes \"text\"]");
     process.exitCode = 1;
     return;
   }
 
   const rawText = await readFile(options.deckFilePath, "utf8");
   const offline = options.offline || process.env.MTG_DECK_ORACLE_OFFLINE === "1";
+  const cardCache = new FileCardCache(join(process.cwd(), ".cache", "scryfall-cards.json"));
   const tagProvider = await loadOptionalCardTagProvider();
   const ratingProvider = await loadOptionalRatingProvider(options.cardRatings);
   const result = await analyzeCommanderDeck({
     rawText,
     sourceUrl: options.deckFilePath,
-    cardDataSource: new CachedCardDataSource(
-      new ScryfallCardDataSource(),
-      new FileCardCache(join(process.cwd(), ".cache", "scryfall-cards.json")),
-    ),
+    cardDataSource: offline
+      ? new CacheOnlyCardDataSource(cardCache)
+      : new CachedCardDataSource(new ScryfallCardDataSource(), cardCache),
     comboDataProvider: new CommanderSpellbookComboDataProvider({
       cache: new FileComboCache(join(process.cwd(), ".cache", "commander-spellbook-combos.json"), {
         seed: createComboSeedCache(),
@@ -38,6 +38,7 @@ async function main(): Promise<void> {
     }),
     ...(tagProvider ? { tagProvider } : {}),
     ...(ratingProvider ? { ratingProvider } : {}),
+    ...(options.scoreNotes ? { scoreNotes: options.scoreNotes } : {}),
   });
 
   if (!result.ok) {

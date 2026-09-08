@@ -21,6 +21,7 @@ frontend
   charts
 
 backend
+  analyzeCommanderDeck pipeline
   deck parser
   card database adapter
   combo data adapter
@@ -174,9 +175,11 @@ Responsabilita':
 Responsabilita':
 
 - leggere una decklist da file;
-- eseguire parsing, risoluzione carte, validazione, tagging, analisi, combo e scoring;
-- usare cache locale per dati Scryfall;
-- produrre un report JSON utile per debug e test end-to-end.
+- chiamare `analyzeCommanderDeck` (parse, resolve, validate, tag, combo, score, explain);
+- usare cache locale per Scryfall e Commander Spellbook;
+- `--offline` usa cache/seed per carte e combo, senza HTTP;
+- `--notes` aggiunge testo di calibrazione al voto;
+- produrre report JSON, Markdown o HTML.
 
 ## Modello Dati Iniziale
 
@@ -208,60 +211,47 @@ DeckAnalysis
   explanation
 ```
 
-## Benchmark Necessari
+## Benchmark
 
-La prima suite vive in `tests/fixtures/benchmarks/` e copre precon, casual tuned, high power, cEDH-like, 200 carte illegali, Whtz legale, combo frammentate, mana base pessima e identita' colore illegale.
+La suite vive in `tests/fixtures/benchmarks/`. I profili sintetici coprono precon, casual, high power, cEDH-like, 200 carte illegali, Whtz legale, combo frammentate, mana base pessima e identita' colore illegale.
 
-Prossimo passo: sostituire i profili sintetici con decklist `.deck` reali in `tests/fixtures/decks/`:
+Liste reali oracle-tagged in `tests/fixtures/decks/real/`:
 
-- `precon_low.deck`;
-- `precon_modded.deck`;
-- `casual_mid.deck`;
-- `casual_strong.deck`;
-- `high_power.deck`;
-- `cedh.deck`;
-- `illegal_200_cards.deck`;
-- `illegal_color_identity.deck`;
-- `bad_mana_base.deck`;
-- `combo_fragments.deck`.
+- `pantlaza-precon.deck` (bracket atteso 4);
+- `muldrotha-casual.deck` (4);
+- `kinnan-high-power.deck` (4, range 86-91 nei benchmark di scoring);
+- `thrasios-tymna-cedh.deck` (5);
+- `gishath-bad-mana.deck` (4);
+- `whtz-120.deck` (3, oversized legale);
+- `kinnan-illegal-size.deck`;
+- `pantlaza-illegal-color.deck`.
 
-Ogni fixture dovrebbe avere un file atteso:
+I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
 
-```text
-expected_score_range
-expected_bracket
-expected_main_findings
-```
+Prossimo passo calibrazione: altre liste reali (stax, voltron, tokens, spellslinger, precon modificato) e unificare il path di scoring con `analyzeCommanderDeck` cosi' CLI e test non divergono sul tag `combo_piece`.
 
-La prima suite benchmark deve coprire almeno:
+## Decisioni Prese
 
-- precon-like;
-- casual tuned;
-- high power;
-- cEDH-like;
-- mazzo illegalmente gonfiato da 200 carte;
-- mazzo Whtz-style legalmente sopra 100 carte;
-- combo frammentate;
-- mana base pessima.
+- Linguaggio e test: TypeScript, Vitest, `tsconfig` strict, Node 22.
+- Dati carte: Scryfall API con cache file in `.cache/scryfall-cards.json`.
+- Combo: Commander Spellbook via API ufficiale, cache file, seed in `knownComboSeed`.
+- Rating persistenti: JSON locale in sviluppo, PostgreSQL in produzione (`DATABASE_URL`).
+- Report mazzo: CLI oggi; UI web dopo M6.
+- Rating Lab: sito Node gia' deployabile (Render).
 
-## Decisioni Da Prendere
+Ancora aperte, non bloccanti per lo scoring:
 
-- Stack frontend: Next.js, Vite React o altro.
-- Stack backend: Node.js/TypeScript, Python o altro.
-- Database: solo file JSON iniziali, SQLite o PostgreSQL.
-- Fonte dati carte: Scryfall API con cache locale.
-- Database combo: integrazione con fonte esterna affidabile, dataset pubblico o database manuale curato.
-- Lingua UI: italiano, inglese o entrambe.
+- Stack frontend del report mazzo (Next.js, Vite React o altro).
+- Lingua UI report (italiano, inglese o entrambe).
 
 ## Rischi
 
 - Valutazione percepita come arbitraria se non spiegata bene.
-- Pesi iniziali dello scoring non ancora calibrati su benchmark reali.
-- False combo rilevate per parsing troppo superficiale.
+- Path CLI/pipeline vs benchmark di scoring: `combo_piece` puo' ancora spostare di un punto il voto, non il bracket 1-3.
+- Seed combo piccolo vs catalogo Spellbook live: voti diversi online e `--offline` se manca la cache disco.
 - Carte difficili da taggare automaticamente.
-- Regole speciali di deckbuilding trattate come errori invece che come eccezioni legali.
 - Power level Commander soggettivo tra playgroup diversi.
-- Dati esterni incompleti o non aggiornati.
+- Dati esterni incompleti o non aggiornati (`.cache/` gitignored).
 
 ## Mitigazioni
 
@@ -275,7 +265,7 @@ La prima suite benchmark deve coprire almeno:
 
 ## Definition of Done Per MVP
 
-L'MVP e' pronto quando:
+Il motore (MVP CLI) e' coperto quando, e oggi lo e':
 
 - accetta una lista Commander testuale;
 - riconosce le carte;
@@ -286,3 +276,5 @@ L'MVP e' pronto quando:
 - distingue liste illegalmente gonfiate da liste legalmente piu' grandi per regole speciali;
 - normalizza correttamente la consistenza dei mazzi piu' grandi;
 - supera test su fixture benchmark.
+
+L'MVP prodotto (sito report) richiede in piu' M5, dopo che M6 ha liste reali coerenti tra CLI e test.

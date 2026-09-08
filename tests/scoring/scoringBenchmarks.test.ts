@@ -69,6 +69,7 @@ function scoreBenchmark(benchmark: ScoringBenchmark) {
     deck: benchmark.deck,
     legality: benchmark.legality,
     ...(benchmark.comboEvaluations ? { comboEvaluations: benchmark.comboEvaluations } : {}),
+    ...(benchmark.detectedCombos ? { detectedCombos: benchmark.detectedCombos } : {}),
   });
 }
 

@@ -1,4 +1,5 @@
 export * from "./cachedCardDataSource.js";
+export * from "./cacheOnlyCardDataSource.js";
 export * from "./cardDataSource.js";
 export * from "./fileCardCache.js";
 export * from "./inMemoryCardCache.js";

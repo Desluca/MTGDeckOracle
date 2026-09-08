@@ -4,9 +4,11 @@ MTG Deck Oracle e' una piattaforma pensata per aiutare i giocatori di Magic: The
 
 L'obiettivo non e' dare un voto superficiale basato solo sulle carte piu' famose o sui bracket Commander, ma costruire una valutazione completa del mazzo: legalita', consistenza, curva di mana, sinergie, combo, ramp, interaction, velocita', resilienza e qualita' del piano di gioco.
 
-Il risultato finale sara' un punteggio da 0 a 100 accompagnato da una spiegazione leggibile, utile sia a chi vuole migliorare il mazzo sia a chi vuole capire se il power level e' adatto al proprio tavolo.
+Il risultato e' un punteggio da 0 a 100 accompagnato da una spiegazione leggibile, utile sia a chi vuole migliorare il mazzo sia a chi vuole capire se il power level e' adatto al proprio tavolo.
 
-Il motore di scoring puo' gia' ricevere rating Elo raccolti dal Rating Lab tramite un provider dedicato, normalizzandoli in valori carta 0-10 per il componente `card_quality`.
+Oggi il motore e' usabile da CLI. Il sito pubblico e' il Rating Lab per i confronti Elo tra carte; la UI del report mazzo arriva dopo la calibrazione dello scoring.
+
+Il motore puo' ricevere rating Elo raccolti dal Rating Lab tramite un provider dedicato, normalizzandoli in valori carta 0-10 per il componente `card_quality`.
 
 ## Problema
 
@@ -14,31 +16,29 @@ Molti strumenti esistenti sottovalutano aspetti fondamentali della valutazione d
 
 MTG Deck Oracle deve evitare questi errori. La forza di un mazzo non dipende solo dalla potenza teorica delle singole carte, ma dalla probabilita' concreta che il mazzo funzioni durante una partita reale.
 
-## Funzionalita' Principali
+## Cosa Fa Oggi Il Motore
 
-- Caricamento lista mazzo in formato testo, Arena-like, Moxfield, Archidekt o simili.
-- Riconoscimento comandante, colori, identita' colore e legalita' Commander.
-- Controllo dimensione mazzo, duplicati non ammessi, carte bannate e coerenza con il comandante.
-- Analisi delle carte piu' forti presenti nel mazzo.
-- Rilevamento di combo e sinergie interne.
-- Analisi curva di mana, distribuzione terre, ramp, draw, tutor, removal, counterspell, protezioni e win condition.
-- Valutazione della consistenza tramite probabilita', ridondanza e accesso ai pezzi chiave.
-- Punteggio finale da 0 a 100 con spiegazione dettagliata.
-- Suggerimenti per migliorare il mazzo senza trasformarlo necessariamente in cEDH.
+- Parsing di liste testuali (quantita', `1x`, set/collector number, sezioni tipo `// COMMANDER`).
+- Risoluzione carte via Scryfall con cache in `.cache/`.
+- Validazione Commander: comandante, identita' colore, banlist, duplicati, dimensione, eccezioni tipo Whtz.
+- Tag funzionali da oracle text (ramp, draw, tutor, interaction, protection incluso shroud, sinergie).
+- Combo da Commander Spellbook, con seed locale e cache disco.
+- Consistenza ipergeometrica, scoring 0-100, bracket 1-5, spiegazione e consigli strutturali.
+- Report CLI in JSON, Markdown o HTML, con voto 0-100 e bracket di costruzione separati.
 
-## Output Atteso
+Non esiste ancora: pagina web per incollare una decklist, import da URL Moxfield/Archidekt, grafici interattivi.
 
-Per ogni mazzo analizzato, il sito dovrebbe restituire:
+## Output Del Report
+
+`npm run analyze` restituisce:
 
 - voto complessivo da 0 a 100;
-- bracket Commander stimato;
-- riassunto del piano di gioco;
-- punti forti;
-- punti deboli;
-- carte piu' impattanti;
-- combo e sinergie trovate;
-- problemi di consistenza;
-- consigli di miglioramento.
+- bracket Commander dalle regole di costruzione (Game Changers, combo da due carte), con 4 vs 5 ancora aiutato dal voto;
+- testo di spiegazione del voto (`scoreNotes`), con nota extra da CLI via `--notes`;
+- breakdown dei sottopunteggi;
+- legalita' e cap;
+- combo rilevate e impatto;
+- punti forti, punti deboli e consigli.
 
 ## Principio Guida
 
@@ -48,15 +48,28 @@ Il cuore del progetto e' l'algoritmo di valutazione. Deve essere severo con list
 
 - `docs/PRODUCT_SPEC.md`: specifica funzionale del prodotto.
 - `docs/COMPETITOR_ANALYSIS.md`: prima analisi degli strumenti simili e delle opportunita' di differenziazione.
-- `docs/TECH_STACK.md`: scelta dello stack TypeScript e architettura tecnica iniziale.
-- `docs/SCORING_ALGORITHM.md`: bozza dell'algoritmo di valutazione.
-- `docs/PROJECT_PLANNER.md`: planner operativo del progetto.
-- `docs/ROADMAP.md`: roadmap di sviluppo per milestone.
-- `docs/DEPLOYMENT.md`: istruzioni per portare online sito, API e database.
+- `docs/TECH_STACK.md`: stack TypeScript, layout `src/` e pipeline di analisi.
+- `docs/SCORING_ALGORITHM.md`: specifica vigente dell'algoritmo di valutazione.
+- `docs/PROJECT_PLANNER.md`: planner operativo, decisioni prese e benchmark.
+- `docs/ROADMAP.md`: milestone con stato di avanzamento.
+- `docs/DEPLOYMENT.md`: deploy del Rating Lab (Node 22 + PostgreSQL).
+
+Queste guide devono descrivere il codice attuale. Dopo ogni slice di sviluppo si aggiornano README, roadmap, planner e, se cambia lo scoring, `SCORING_ALGORITHM.md`.
 
 ## Stato Progetto
 
-Questa repository contiene per ora la bozza iniziale del progetto. La priorita' e' definire bene il modello di valutazione prima di implementare interfaccia, backend e database.
+Il motore di valutazione e' implementato e testato (Vitest + typecheck, CI su Node 22). La priorita' resta calibrare lo scoring su liste reali prima della UI report.
+
+Fatto: parser, validazione, tagging, combo Spellbook (seed + cache), pipeline `analyzeCommanderDeck`, CLI, Rating Lab, 8 decklist reali oracle-tagged.
+
+In corso: catalogo Spellbook completo riproducibile, altre liste competitive. Voto e bracket sono output distinti.
+
+Non in corso: UI del report mazzo.
+
+```bash
+npm test
+npm run typecheck
+```
 
 ## CLI MVP
 
@@ -79,7 +92,14 @@ npm run analyze -- path/to/decklist.txt --format html
 ```
 
 La CLI usa Scryfall per i dati carta, una cache locale in `.cache/` e Commander Spellbook per cercare combo note.
-`--offline` (o `MTG_DECK_ORACLE_OFFLINE=1`) usa il catalogo combo seed senza chiamare Spellbook.
+`--offline` (o `MTG_DECK_ORACLE_OFFLINE=1`) non chiama Spellbook ne' Scryfall: combo dal seed/cache, carte solo da `.cache/scryfall-cards.json`.
+`--notes` (alias `--score-notes`) aggiunge una nota scritta al voto, per esempio la calibrazione del playgroup.
+
+```bash
+npm run analyze -- path/to/decklist.txt --offline
+npm run analyze -- path/to/decklist.txt --notes "Core solido del martedi, non un 3."
+npm run build-combo-cache
+```
 Le combo rilevate aggiungono anche tag `combo_piece` alle carte coinvolte, con evidence da `commander_spellbook`.
 Di default prova anche a caricare i rating raccolti dal Rating Lab e usarli nel componente `card_quality`.
 Se presente, legge anche `.cache/external-card-tags.json` per arricchire i tag funzionali con dati esterni tipo hub Archidekt/Moxfield.
@@ -173,7 +193,7 @@ La leaderboard carica 100 carte per pagina e arricchisce progressivamente le car
 
 ## Deploy
 
-La base online espone la homepage su `/`, il Rating Lab su `/rating-lab`, la leaderboard carte su `/leaderboard`, il grafico attivita' su `/graph` e le API su `/api/rating-lab/*`.
+Il sito online e' il Rating Lab, non l'analyzer di mazzi. Espone homepage `/`, `/rating-lab`, leaderboard `/leaderboard`, grafico `/graph` e API `/api/rating-lab/*`.
 
 Per preparare il database PostgreSQL:
 

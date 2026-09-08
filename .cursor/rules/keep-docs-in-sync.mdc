@@ -1,0 +1,32 @@
+---
+description: Keep README and docs/ aligned with code after every development slice
+alwaysApply: true
+---
+
+# Docs follow the code
+
+After any slice that changes behavior, scoring, CLI, fixtures, deploy or milestones, update the matching guides in the same change. Do not leave README or `docs/` describing a previous phase.
+
+## What to update
+
+- `README.md`: stato progetto, fatto vs futuro, comandi CLI/test. Never call the repo a "bozza" while the engine exists.
+- `docs/ROADMAP.md`: milestone status table. M6 calibration starts before M5 UI.
+- `docs/PROJECT_PLANNER.md`: decisioni prese, benchmark reali, definition of done.
+- `docs/TECH_STACK.md`: layout `src/`, pipeline, prossimo step tecnico.
+- `docs/SCORING_ALGORITHM.md`: if weights, brackets, combo or legality caps change.
+- `docs/DEPLOYMENT.md`: if Rating Lab routes or env vars change.
+
+## Rules of wording
+
+- Present tense for what the code does. Future tense only for UI report, URL import, budget, algorithm versioning.
+- Do not list Moxfield/Archidekt URL import as a current feature. Text lists are supported; URL fetch is not.
+- `--offline` skips Spellbook HTTP and Scryfall HTTP. Cards come only from `.cache/scryfall-cards.json`.
+- The public site is Rating Lab, not the deck report UI.
+- Do not add new markdown files to document a slice; edit the existing guides.
+
+## Example
+
+```text
+# BAD: README still says "bozza iniziale" after analyzeCommanderDeck exists
+# GOOD: README lists CLI + pipeline as current, UI report as not started
+```

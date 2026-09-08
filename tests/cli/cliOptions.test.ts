@@ -75,4 +75,25 @@ describe("parseAnalyzeDeckCliOptions", () => {
       offline: true,
     });
   });
+
+  it("parses score notes", () => {
+    expect(parseAnalyzeDeckCliOptions(["deck.txt", "--notes", "Core solido del playgroup"])).toEqual({
+      deckFilePath: "deck.txt",
+      format: "json",
+      cardRatings: "auto",
+      offline: false,
+      scoreNotes: "Core solido del playgroup",
+    });
+    expect(parseAnalyzeDeckCliOptions(["deck.txt", "--score-notes=Calibrazione Kinnan"])).toEqual({
+      deckFilePath: "deck.txt",
+      format: "json",
+      cardRatings: "auto",
+      offline: false,
+      scoreNotes: "Calibrazione Kinnan",
+    });
+  });
+
+  it("throws when notes are missing", () => {
+    expect(() => parseAnalyzeDeckCliOptions(["deck.txt", "--notes"])).toThrow("Missing score notes");
+  });
 });

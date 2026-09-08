@@ -20,6 +20,7 @@ export interface AnalyzeCommanderDeckInput {
   readonly comboDataProvider: ComboDataProvider;
   readonly tagProvider?: CardTagProvider;
   readonly ratingProvider?: CardRatingProvider;
+  readonly scoreNotes?: string;
 }
 
 export type AnalyzeCommanderDeckResult =
@@ -65,8 +66,10 @@ export async function analyzeCommanderDeck(input: AnalyzeCommanderDeckInput): Pr
     deck: taggedDeck,
     legality,
     comboEvaluations,
+    detectedCombos,
     consistency,
     ...(input.ratingProvider ? { ratingProvider: input.ratingProvider } : {}),
+    ...(input.scoreNotes ? { scoreNotes: input.scoreNotes } : {}),
   });
   const explanation = generateDeckScoreExplanation({
     score,
@@ -74,6 +77,7 @@ export async function analyzeCommanderDeck(input: AnalyzeCommanderDeckInput): Pr
     structure,
     consistency,
     comboEvaluations,
+    ...(input.scoreNotes ? { scoreNotes: score.explanation } : {}),
   });
   const detailedRecommendations = recommendDeckImprovements(taggedDeck, structure);
 

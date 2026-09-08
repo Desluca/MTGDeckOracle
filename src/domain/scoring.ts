@@ -31,9 +31,23 @@ export interface ScorePenalty {
 export interface ScoreBreakdown {
   readonly finalScore: number;
   readonly commanderBracket: CommanderBracket;
+  readonly bracket: CommanderBracketReport;
   readonly legalityCap: number;
   readonly components: readonly ScoreComponent[];
   readonly penalties: readonly ScorePenalty[];
+  readonly explanation: string;
+}
+
+export interface CommanderBracketReport {
+  readonly bracket: CommanderBracket;
+  readonly label: string;
+  readonly minimumBracket: CommanderBracket;
+  readonly gameChangerCount: number;
+  readonly gameChangerNames: readonly string[];
+  readonly signals: readonly {
+    readonly code: string;
+    readonly explanation: string;
+  }[];
   readonly explanation: string;
 }
 

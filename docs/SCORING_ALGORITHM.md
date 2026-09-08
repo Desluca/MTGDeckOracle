@@ -1,5 +1,7 @@
 # Scoring Algorithm
 
+Specifica vigente dell'algoritmo. Il codice in `src/scoring/`, `src/consistency/` e `src/combo/` deve restare allineato a questo documento. Se cambi pesi, cap, bracket o combo, aggiorna entrambe le parti.
+
 ## Obiettivo
 
 L'algoritmo deve stimare quanto un mazzo Commander sia forte, consistente e adatto al suo piano di gioco. Il voto finale va da 0 a 100 e deve sempre essere accompagnato da una spiegazione.
@@ -369,19 +371,14 @@ Il punteggio deve considerare il colore del mazzo. Non tutti i colori hanno le s
 
 ## Velocita' e Bracket
 
-Il bracket stimato non deve sostituire il voto numerico. Deve essere una traduzione leggibile del risultato.
+Il voto 0-100 e il bracket ufficiale sono due output distinti.
 
-Bozza:
+- Il voto misura quanto il mazzo funziona in partita.
+- Il bracket segue le regole Wizards di costruzione: Game Changers, combo infinite da due carte, extra turn, mass land denial.
+- Un Core (bracket 2) molto solido puo' arrivare a 75. Un Upgraded (bracket 3) costruito male puo' restare a 60.
+- Solo Optimized vs cEDH (4 vs 5) usa ancora il voto, perche' le regole di costruzione non li separano: da 92 in su, se il minimo da costruzione e' 4, il bracket diventa 5.
 
-| Voto | Bracket | Interpretazione |
-| ---: | ---: | --- |
-| 0-20 | 1 | Lista non valida, rotta o quasi ingiocabile |
-| 21-50 | 2 | Casual debole, precon grezzo o mana base pessima |
-| 51-76 | 3 | Casual funzionante / precon solido |
-| 77-91 | 4 | Casual forte / high power |
-| 92-100 | 5 | cEDH o quasi cEDH |
-
-Il bracket deve considerare anche velocita' media di vittoria, tutor, combo compatte, free interaction, fast mana e densita' di carte ad alta efficienza.
+`isGameChanger` arriva da Scryfall; per le fixture c'e' anche un elenco di nomi noti. Il report include `score.bracket` (conteggio GC, segnali, minimo da costruzione) e `explanation.scoreNotes` (testo sul voto). Si puo' passare `scoreNotes` extra a `analyzeCommanderDeck` / `scoreCommanderDeck` per aggiungere una nota di calibrazione.
 
 ## Penalita' Anti-Abuso
 
@@ -415,33 +412,29 @@ Il mazzo ottiene 67/100. Il piano token con il comandante e' chiaro e ha buone p
 
 ## Calibrazione
 
-Per rendere l'algoritmo affidabile servono mazzi benchmark:
+Suite automatica:
 
-- precon recenti;
+- profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts`;
+- liste reali in `tests/fixtures/decks/real/` (Pantlaza, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz, illegalita').
+
+Ogni benchmark ha `expected_score_range` e `expected_bracket`. Mancano ancora spiegazioni manuali per lista (`expected_main_findings`) e archetipi extra.
+
+Da coprire meglio:
+
 - precon modificati;
-- casual medi;
-- casual forti;
-- high power;
-- cEDH noti;
-- liste illegali o volutamente sbagliate;
-- liste gonfiate da 120, 150 e 200 carte.
+- stax, voltron, tokens, spellslinger;
+- allineamento CLI vs fixture sul tag `combo_piece`.
 
-Ogni benchmark deve avere:
+## Implementazione Attuale
 
-- voto atteso;
-- bracket atteso;
-- spiegazione manuale;
-- motivi per cui il voto non deve salire o scendere troppo.
+Il motore usa:
 
-## Prima Versione Implementabile
+- database carte da Scryfall con cache file;
+- tag funzionali da oracle text, override e provider esterni opzionali;
+- combo da Commander Spellbook (API, cache, seed);
+- ipergeometriche sulla libreria, comandante in command zone;
+- pesi in `defaultScoringWeights` (`src/domain/scoring.ts`);
+- fixture di mazzi per test automatici;
+- Elo del Rating Lab come `CardRatingProvider` opzionale.
 
-La prima versione dell'algoritmo puo' usare:
-
-- database carte da Scryfall;
-- tag funzionali manuali;
-- database combo curato;
-- formule probabilistiche semplici;
-- pesi configurabili in JSON;
-- fixture di mazzi per test automatici.
-
-In seguito si potra' aggiungere machine learning o ranking basato su dati reali, ma solo dopo aver costruito una base deterministica e spiegabile.
+Non usa ancora machine learning. `isGameChanger` e' disponibile sui dati carta ma non e' un componente di score.
