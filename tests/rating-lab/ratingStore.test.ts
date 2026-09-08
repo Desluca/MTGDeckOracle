@@ -99,15 +99,35 @@ describe("RatingStore", () => {
     await expect(store.applyRatingSeed("bestcard", "v1", [])).resolves.toBe(true);
     await expect(store.applyRatingSeed("bestcard", "v1", [])).resolves.toBe(false);
   });
+
+  it("returns leaderboard cards sorted by rating with pagination", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.upsertCard(card("middle", "Middle", 1700));
+    await store.upsertCard(card("top", "Top", 1900));
+    await store.upsertCard(card("bottom", "Bottom", 1400));
+
+    const firstPage = await store.findLeaderboardCards(1, 2);
+    const secondPage = await store.findLeaderboardCards(2, 2);
+
+    expect(firstPage).toMatchObject({
+      page: 1,
+      pageSize: 2,
+      totalCards: 3,
+      totalPages: 2,
+    });
+    expect(firstPage.cards.map((card) => card.id)).toEqual(["top", "middle"]);
+    expect(secondPage.cards.map((card) => card.id)).toEqual(["bottom"]);
+  });
 });
 
-function card(id: string, name: string): RatingCard {
+function card(id: string, name: string, rating = 1500): RatingCard {
   return {
     id,
     name,
     typeLine: "Artifact",
     manaValue: 1,
-    rating: 1500,
+    rating,
     wins: 0,
     losses: 0,
   };

@@ -6,6 +6,7 @@ La prima versione pubblica espone:
 
 - homepage su `/`;
 - Rating Lab su `/rating-lab`;
+- leaderboard carte su `/leaderboard`;
 - grafico attivita' su `/graph`;
 - API Rating Lab su `/api/rating-lab/match`, `/api/rating-lab/vote` e `/api/rating-lab/stats`;
 - andamento voti su `/api/rating-lab/activity`;

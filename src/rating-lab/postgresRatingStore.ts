@@ -4,7 +4,7 @@ import pg from "pg";
 
 import { updateEloRatings } from "./elo.js";
 import type { RatingStore } from "./ratingStore.js";
-import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase } from "./ratingTypes.js";
+import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase, RatingLeaderboardPage } from "./ratingTypes.js";
 
 const { Pool } = pg;
 
@@ -115,6 +115,33 @@ export class PostgresRatingStore implements RatingStore {
 
     const result = await this.pool.query<RatingCardRow>("select * from rating_cards");
     return result.rows.map(mapCard);
+  }
+
+  async findLeaderboardCards(page: number, pageSize: number): Promise<RatingLeaderboardPage> {
+    await this.ensureSchema();
+
+    const totalResult = await this.pool.query<{ count: string }>("select count(*) from rating_cards");
+    const totalCards = Number.parseInt(totalResult.rows[0]?.count ?? "0", 10);
+    const totalPages = Math.max(1, Math.ceil(totalCards / pageSize));
+    const normalizedPage = Math.min(Math.max(page, 1), totalPages);
+    const offset = (normalizedPage - 1) * pageSize;
+    const cardsResult = await this.pool.query<RatingCardRow>(
+      `
+      select *
+      from rating_cards
+      order by rating desc, wins desc, name asc
+      limit $1 offset $2
+      `,
+      [pageSize, offset],
+    );
+
+    return {
+      cards: cardsResult.rows.map(mapCard),
+      page: normalizedPage,
+      pageSize,
+      totalCards,
+      totalPages,
+    };
   }
 
   async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison> {

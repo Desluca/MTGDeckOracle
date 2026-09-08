@@ -50,6 +50,11 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/leaderboard") {
+    sendHtml(response, renderLeaderboardPage());
+    return;
+  }
+
   if (request.method === "GET" && url.pathname === "/health") {
     sendJson(response, 200, { status: "ok" });
     return;
@@ -93,10 +98,17 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
     return;
   }
 
+  if (request.method === "GET" && isApiPath(url.pathname, "leaderboard")) {
+    const page = parsePositiveInteger(url.searchParams.get("page"), 1);
+    const pageSize = Math.min(parsePositiveInteger(url.searchParams.get("pageSize"), 100), 100);
+    sendJson(response, 200, await store.findLeaderboardCards(page, pageSize));
+    return;
+  }
+
   sendJson(response, 404, { error: "Not found" });
 }
 
-function isApiPath(pathname: string, endpoint: "activity" | "match" | "stats" | "vote"): boolean {
+function isApiPath(pathname: string, endpoint: "activity" | "leaderboard" | "match" | "stats" | "vote"): boolean {
   return pathname === `/api/rating-lab/${endpoint}` || pathname === `/api/${endpoint}`;
 }
 
@@ -111,6 +123,11 @@ function sanitizeVisitorId(visitorId: string | undefined): string | undefined {
 
 function parseFirstCardRatingPool(value: string | null): FirstCardRatingPool {
   return value === "weak" || value === "medium" || value === "strong" ? value : "all";
+}
+
+function parsePositiveInteger(value: string | null, fallback: number): number {
+  const parsedValue = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : fallback;
 }
 
 function sendJson(response: ServerResponse, statusCode: number, body: unknown): void {
@@ -154,6 +171,7 @@ function renderLandingPage(): string {
       <p>Analisi Commander pensata per valutare forza, consistenza, curva, combo e piano di gioco di un mazzo con un punteggio leggibile da 0 a 100.</p>
       <a href="/rating-lab">Apri Rating Lab</a>
       <a class="secondary" href="/graph">Vedi Grafico</a>
+      <a class="secondary" href="/leaderboard">Leaderboard Carte</a>
     </section>
     <section class="grid">
       <article class="card"><h2>Deck Analysis</h2><p>Import decklist, validazione Commander e scoring sono il cuore del prodotto.</p></article>
@@ -238,6 +256,85 @@ function renderGraphPage(): string {
 </html>`;
 }
 
+function renderLeaderboardPage(): string {
+  return `<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MTG Deck Oracle Card Leaderboard</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0f172a; color: #f8fafc; }
+    main { max-width: 1180px; margin: 0 auto; padding: 32px; }
+    a { color: #93c5fd; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 20px 0; }
+    button, .button { border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 800; text-decoration: none; background: #60a5fa; color: #082f49; }
+    button:disabled { cursor: default; filter: grayscale(0.7) brightness(0.75); opacity: 0.65; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 12px; }
+    .card img { width: 100%; border-radius: 12px; background: #111827; aspect-ratio: 488 / 680; object-fit: cover; }
+    .card h2 { font-size: 1rem; margin: 10px 0 6px; }
+    .rating { color: #facc15; font-weight: 900; }
+    .status { color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/">Home</a> · <a href="/rating-lab">Rating Lab</a> · <a href="/graph">Grafico</a></p>
+    <h1>Leaderboard Carte</h1>
+    <p class="status">Mostra 100 carte per pagina per caricare velocemente le immagini.</p>
+    <div class="actions">
+      <a class="button" href="/rating-lab">Torna al Rating Lab</a>
+      <button id="previous" onclick="changePage(-1)">Pagina precedente</button>
+      <button id="next" onclick="changePage(1)">Pagina successiva</button>
+    </div>
+    <p id="pageInfo" class="status">Caricamento...</p>
+    <section id="leaderboard" class="grid"></section>
+  </main>
+  <script>
+    const pageSize = 100;
+    let currentPage = Number.parseInt(new URLSearchParams(window.location.search).get('page') || '1', 10);
+    let totalPages = 1;
+
+    async function loadLeaderboard() {
+      const leaderboard = await fetch('/api/rating-lab/leaderboard?page=' + currentPage + '&pageSize=' + pageSize).then((response) => response.json());
+      currentPage = leaderboard.page;
+      totalPages = leaderboard.totalPages;
+      document.getElementById('pageInfo').textContent = 'Pagina ' + leaderboard.page + ' di ' + leaderboard.totalPages + ' | Carte totali: ' + leaderboard.totalCards;
+      document.getElementById('previous').disabled = leaderboard.page <= 1;
+      document.getElementById('next').disabled = leaderboard.page >= leaderboard.totalPages;
+      renderCards(leaderboard.cards);
+      history.replaceState(null, '', '/leaderboard?page=' + leaderboard.page);
+    }
+
+    function changePage(delta) {
+      currentPage = Math.min(Math.max(currentPage + delta, 1), totalPages);
+      loadLeaderboard();
+    }
+
+    function renderCards(cards) {
+      const container = document.getElementById('leaderboard');
+      container.innerHTML = cards.map((card, index) => {
+        const rank = (currentPage - 1) * pageSize + index + 1;
+        const image = card.imageUrl ? '<img loading="lazy" src="' + card.imageUrl + '" alt="' + escapeHtml(card.name) + '">' : '<div class="status">Nessuna immagine</div>';
+        return '<article class="card">' +
+          image +
+          '<h2>#' + rank + ' ' + escapeHtml(card.name) + '</h2>' +
+          '<p class="rating">Rating: ' + card.rating + '</p>' +
+          '</article>';
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
+    }
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>`;
+}
+
 async function readJsonBody<T>(request: IncomingMessage): Promise<T> {
   const chunks: Buffer[] = [];
 
@@ -265,6 +362,7 @@ function renderHomePage(): string {
     button { width: 100%; padding: 12px 16px; border: 0; border-radius: 12px; cursor: pointer; font-weight: 700; }
     button:hover { filter: brightness(1.1); }
     button:disabled { cursor: default; filter: grayscale(0.7) brightness(0.75); opacity: 0.65; }
+    .nav-button { display: inline-block; background: #60a5fa; color: #082f49; padding: 10px 14px; border-radius: 12px; font-weight: 800; text-decoration: none; }
     .vote { background: #22c55e; color: #052e16; }
     .next { width: auto; background: #60a5fa; color: #082f49; margin-top: 16px; }
     .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
@@ -278,6 +376,7 @@ function renderHomePage(): string {
   <main>
     <h1>MTG Deck Oracle Rating Lab</h1>
     <p>Scegli quale carta ritieni piu' forte. Ogni voto aggiorna un rating Elo salvato nel database.</p>
+    <p><a class="nav-button" href="/leaderboard">Vai alla Leaderboard</a></p>
     <p id="strategy" class="status">Caricamento...</p>
     <div class="filters" aria-label="Filtro rating prima carta">
       <button class="filter" data-pool="weak" onclick="setFirstPool('weak')">scarse</button>

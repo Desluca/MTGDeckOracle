@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 
 import { updateEloRatings } from "./elo.js";
-import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase } from "./ratingTypes.js";
+import type { CardComparison, MatchStrategy, RatingCard, RatingCardSeed, RatingLabDatabase, RatingLeaderboardPage } from "./ratingTypes.js";
 
 const EMPTY_DATABASE: RatingLabDatabase = {
   cards: {},
@@ -15,6 +15,7 @@ export interface RatingStore {
   upsertCard(card: RatingCard): Promise<RatingCard>;
   findCard(cardId: string): Promise<RatingCard | undefined>;
   findCardsWithRatings(): Promise<readonly RatingCard[]>;
+  findLeaderboardCards(page: number, pageSize: number): Promise<RatingLeaderboardPage>;
   recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison>;
   applyRatingSeed(seedName: string, seedVersion: string, cards: readonly RatingCardSeed[]): Promise<boolean>;
 }
@@ -51,6 +52,22 @@ export class FileRatingStore implements RatingStore {
   async findCardsWithRatings(): Promise<readonly RatingCard[]> {
     const database = await this.readDatabase();
     return Object.values(database.cards);
+  }
+
+  async findLeaderboardCards(page: number, pageSize: number): Promise<RatingLeaderboardPage> {
+    const cards = Object.values((await this.readDatabase()).cards).sort(compareLeaderboardCards);
+    const totalCards = cards.length;
+    const totalPages = Math.max(1, Math.ceil(totalCards / pageSize));
+    const normalizedPage = Math.min(Math.max(page, 1), totalPages);
+    const offset = (normalizedPage - 1) * pageSize;
+
+    return {
+      cards: cards.slice(offset, offset + pageSize),
+      page: normalizedPage,
+      pageSize,
+      totalCards,
+      totalPages,
+    };
   }
 
   async recordVote(winnerCardId: string, loserCardId: string, strategy: MatchStrategy, visitorId?: string): Promise<CardComparison> {
@@ -157,6 +174,10 @@ function isMissingFileError(error: unknown): boolean {
 
 function normalizeSeedLookupName(name: string): string {
   return name.trim().toLowerCase();
+}
+
+function compareLeaderboardCards(left: RatingCard, right: RatingCard): number {
+  return right.rating - left.rating || right.wins - left.wins || left.name.localeCompare(right.name);
 }
 
 export const RatingStore = FileRatingStore;

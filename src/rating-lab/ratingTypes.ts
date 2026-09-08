@@ -32,6 +32,14 @@ export interface CardMatch {
   readonly strategy: MatchStrategy;
 }
 
+export interface RatingLeaderboardPage {
+  readonly cards: readonly RatingCard[];
+  readonly page: number;
+  readonly pageSize: number;
+  readonly totalCards: number;
+  readonly totalPages: number;
+}
+
 export interface RatingLabDatabase {
   readonly cards: Record<string, RatingCard>;
   readonly comparisons: readonly CardComparison[];

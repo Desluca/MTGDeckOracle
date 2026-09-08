@@ -103,7 +103,7 @@ I pulsanti `scarse`, `meh`, `forti` e `tutte` sopra le carte permettono di forza
 
 ## Deploy
 
-La base online espone la homepage su `/`, il Rating Lab su `/rating-lab`, il grafico attivita' su `/graph` e le API su `/api/rating-lab/*`.
+La base online espone la homepage su `/`, il Rating Lab su `/rating-lab`, la leaderboard carte su `/leaderboard`, il grafico attivita' su `/graph` e le API su `/api/rating-lab/*`.
 
 Per preparare il database PostgreSQL:
 
