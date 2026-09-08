@@ -35,7 +35,7 @@ export function scoreCommanderDeck(input: ScoreCommanderDeckInput): ScoreBreakdo
 
   const components: ScoreComponent[] = [
     component("legality", "Legalita' e struttura", input.legality.legalityCap, weights.legality, explainLegality(input.legality)),
-    component("consistency", "Consistenza", consistency.score, weights.consistency, "Probabilita' di accedere a terre, ramp, draw e win condition."),
+    component("consistency", "Consistenza", consistency.score, weights.consistency, "Probabilita' di accedere a terre, ramp, draw, interaction e win condition dalla libreria, con tutor e ridondanza."),
     component("game_plan", "Piano di gioco", scoreGamePlan(input.deck), weights.gamePlan, "Premia densita' di ruoli funzionali e copertura del piano."),
     component("card_quality", "Qualita' carte", scoreCardQuality(input.deck, input.ratingProvider), weights.cardQuality, "Media dei rating carta, con un peso minore per il valore contestuale."),
     component(
@@ -233,7 +233,7 @@ function bracketFromScore(score: number): CommanderBracket {
     return 3;
   }
 
-  if (score <= 90) {
+  if (score <= 91) {
     return 4;
   }
 

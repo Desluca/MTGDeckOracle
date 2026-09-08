@@ -24,7 +24,14 @@ describe("generateDeckScoreExplanation", () => {
     const explanation = generateDeckScoreExplanation({ score, legality, structure, consistency });
 
     expect(explanation.summary).toContain(`${score.finalScore}/100`);
+    expect(explanation.summary).toContain("Accesso solido a terre nei primi turni");
+    expect(explanation.summary).toContain("Debole su");
     expect(explanation.recommendations.length).toBeGreaterThan(0);
+    expect(
+      explanation.recommendations.some(
+        (recommendation) => recommendation.includes("ramp") || recommendation.includes("win condition"),
+      ),
+    ).toBe(true);
   });
 
   it("calls out legality problems", () => {
@@ -79,6 +86,24 @@ describe("generateDeckScoreExplanation", () => {
     });
 
     expect(explanation.strengths.some((strength) => strength.includes("Combo rilevante"))).toBe(true);
+    expect(explanation.summary).toContain("Combo rilevante");
+  });
+
+  it("mentions oversized libraries in the summary", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Wastes", types: ["land"], typeLine: "Basic Land — Wastes" }), 199),
+      ],
+    });
+    const legality = legalReport();
+    const structure = analyzeDeckStructure(deck);
+    const consistency = analyzeConsistency(deck);
+    const score = scoreCommanderDeck({ deck, legality, consistency });
+
+    const explanation = generateDeckScoreExplanation({ score, legality, structure, consistency });
+
+    expect(explanation.summary).toContain("La libreria da 199 carte riduce la consistenza.");
+    expect(explanation.weaknesses.some((weakness) => weakness.includes("dimensione del mazzo"))).toBe(true);
   });
 });
 

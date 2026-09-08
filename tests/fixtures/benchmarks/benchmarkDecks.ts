@@ -65,7 +65,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     }),
     legality: legalReport(),
     comboEvaluations: [comboEvaluation("high-power-combo", 88)],
-    expectedScoreRange: { min: 78, max: 92 },
+    expectedScoreRange: { min: 78, max: 91 },
     expectedBracket: 4,
   },
   {

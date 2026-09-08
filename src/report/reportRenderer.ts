@@ -51,6 +51,7 @@ export function renderMarkdownReport(report: DeckReport): string {
     renderMarkdownList("Strengths", report.explanation.strengths),
     renderMarkdownList("Weaknesses", report.explanation.weaknesses),
     renderMarkdownList("Recommendations", report.explanation.recommendations),
+    renderMarkdownConsistency(report.consistency),
     renderMarkdownDetailedRecommendations(report.detailedRecommendations ?? []),
     renderMarkdownComponents(report.score),
     renderMarkdownCombos(report),
@@ -83,6 +84,7 @@ export function renderHtmlReport(report: DeckReport): string {
     renderHtmlList("Strengths", report.explanation.strengths),
     renderHtmlList("Weaknesses", report.explanation.weaknesses),
     renderHtmlList("Recommendations", report.explanation.recommendations),
+    renderHtmlConsistency(report.consistency),
     renderHtmlDetailedRecommendations(report.detailedRecommendations ?? []),
     renderHtmlComponents(report.score),
     renderHtmlCombos(report),
@@ -98,6 +100,19 @@ function renderMarkdownList(title: string, items: readonly string[]): string {
   }
 
   return [`## ${title}`, "", ...items.map((item) => `- ${item}`), ""].join("\n");
+}
+
+function renderMarkdownConsistency(consistency: ConsistencyAnalysis): string {
+  return [
+    "## Consistency",
+    "",
+    `- Score: ${consistency.score}/100`,
+    `- Library size: ${consistency.librarySize}`,
+    `- Redundancy: ${consistency.redundancyScore.toFixed(2)}`,
+    `- Size multiplier: ${consistency.sizeMultiplier.toFixed(2)}`,
+    ...consistency.signals.map((signal) => `- ${signal.name}: ${Math.round(signal.probability * 100)}% — ${signal.explanation}`),
+    "",
+  ].join("\n");
 }
 
 function renderMarkdownComponents(score: ScoreBreakdown): string {
@@ -150,6 +165,21 @@ function renderHtmlList(title: string, items: readonly string[]): string {
   }
 
   return [`  <h2>${escapeHtml(title)}</h2>`, "  <ul>", ...items.map((item) => `    <li>${escapeHtml(item)}</li>`), "  </ul>"].join("\n");
+}
+
+function renderHtmlConsistency(consistency: ConsistencyAnalysis): string {
+  return [
+    "  <h2>Consistency</h2>",
+    "  <ul>",
+    `    <li>Score: ${consistency.score}/100</li>`,
+    `    <li>Library size: ${consistency.librarySize}</li>`,
+    `    <li>Redundancy: ${consistency.redundancyScore.toFixed(2)}</li>`,
+    `    <li>Size multiplier: ${consistency.sizeMultiplier.toFixed(2)}</li>`,
+    ...consistency.signals.map(
+      (signal) => `    <li>${escapeHtml(signal.name)}: ${Math.round(signal.probability * 100)}% — ${escapeHtml(signal.explanation)}</li>`,
+    ),
+    "  </ul>",
+  ].join("\n");
 }
 
 function renderHtmlComponents(score: ScoreBreakdown): string {

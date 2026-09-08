@@ -132,12 +132,11 @@ tests/
 
 ## Prossimo Step Tecnico
 
-Dopo parser, validatore, card-data, combo, Commander Spellbook, tagger, consistenza, scoring MVP, spiegazioni, recommendations, renderer report, CLI e benchmark iniziali, il prossimo blocco da implementare e':
+Dopo parser, validatore, card-data, combo, Commander Spellbook, tagger, consistenza (libreria vs command zone, tutor, interaction, ridondanza), scoring MVP, spiegazioni, recommendations, renderer report, CLI e benchmark iniziali, il prossimo blocco da implementare e':
 
 1. sostituire parte dei benchmark sintetici con decklist reali;
-2. aggiungere una UI web sopra il renderer HTML;
-3. rendere i suggerimenti sensibili a budget, colori e target bracket;
-4. ottimizzare il provider combo per ridurre il numero di chiamate su decklist complete.
+2. cache delle chiamate Commander Spellbook;
+3. UI web solo dopo il nucleo di scoring.
 
 ## Deploy Online
 

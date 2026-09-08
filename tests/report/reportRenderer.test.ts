@@ -9,6 +9,7 @@ describe("reportRenderer", () => {
     expect(markdown).toContain("# MTG Deck Oracle Report");
     expect(markdown).toContain("- Score: 72/100");
     expect(markdown).toContain("## Score Breakdown");
+    expect(markdown).toContain("## Consistency");
     expect(markdown).toContain("## Detailed Recommendations");
   });
 
@@ -18,6 +19,7 @@ describe("reportRenderer", () => {
     expect(html).toContain("<!doctype html>");
     expect(html).toContain("72/100");
     expect(html).toContain("<h2>Score Breakdown</h2>");
+    expect(html).toContain("<h2>Consistency</h2>");
     expect(html).toContain("<h2>Detailed Recommendations</h2>");
   });
 
@@ -69,7 +71,9 @@ function createReport(): DeckReport {
     },
     consistency: {
       deckSize: 100,
+      librarySize: 99,
       sizeMultiplier: 1,
+      redundancyScore: 0.7,
       signals: [],
       score: 70,
     },

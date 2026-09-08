@@ -132,17 +132,22 @@ Un mazzo da 200 carte puo' contenere molte bombe, ma il sistema deve riconoscere
 
 ### Probabilita' di Accesso
 
+Il comandante non e' nel mazzo pescabile: le ipergeometriche usano solo la libreria (mainboard). Se il comandante svolge gia' una funzione (ramp, draw, tutor, interaction o win), quella funzione riceve un accesso parziale dalla command zone, senza contare la carta due volte.
+
 Per carte singole o categorie funzionali, usare una stima ipergeometrica:
 
 ```text
-P(almeno 1 successo) = 1 - C(deck_size - successes, draws) / C(deck_size, draws)
+P(almeno 1 successo) = 1 - C(library_size - successes, draws) / C(library_size, draws)
+access = 1 - (1 - library_p) * (1 - commander_availability)
 ```
 
 Dove:
 
-- `deck_size` e' il numero di carte nel mazzo pescabile;
+- `library_size` e' il numero di carte nel mazzo pescabile;
 - `successes` e' il numero di carte che svolgono la funzione cercata;
-- `draws` e' il numero di carte viste entro un certo turno.
+- `draws` e' il numero di carte viste entro un certo turno;
+- i tutor aumentano l'accesso alle win condition solo se nel mazzo c'e' almeno una win o un combo payoff;
+- il punteggio mescola accesso medio (80%) e ridondanza dei ruoli chiave (20%), poi applica il moltiplicatore di dimensione sulla libreria attesa (99 con un comandante, 98 con partner).
 
 Esempio: probabilita' di vedere almeno una fonte di ramp entro turno 3, considerando mano iniziale e pescate.
 
@@ -373,8 +378,8 @@ Bozza:
 | 0-20 | 1 | Lista non valida, rotta o quasi ingiocabile |
 | 21-50 | 2 | Casual debole, precon grezzo o mana base pessima |
 | 51-76 | 3 | Casual funzionante / precon solido |
-| 77-90 | 4 | Casual forte / high power |
-| 91-100 | 5 | cEDH o quasi cEDH |
+| 77-91 | 4 | Casual forte / high power |
+| 92-100 | 5 | cEDH o quasi cEDH |
 
 Il bracket deve considerare anche velocita' media di vittoria, tutor, combo compatte, free interaction, fast mana e densita' di carte ad alta efficienza.
 
