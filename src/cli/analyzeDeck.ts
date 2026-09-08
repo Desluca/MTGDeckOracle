@@ -9,6 +9,8 @@ import { analyzeConsistency } from "../consistency/index.js";
 import { resolveDeckList } from "../deck/index.js";
 import { generateDeckScoreExplanation } from "../explanation/index.js";
 import { parseDeckList } from "../parser/index.js";
+import { createRatingStore } from "../rating-lab/index.js";
+import { loadCardRatingProviderFromRatingStore } from "../ratings/index.js";
 import { recommendDeckImprovements } from "../recommendations/index.js";
 import { renderReport } from "../report/index.js";
 import { scoreCommanderDeck } from "../scoring/index.js";
@@ -49,11 +51,13 @@ async function main(): Promise<void> {
   const consistency = analyzeConsistency(taggedDeck);
   const detectedCombos = await detectDeckCombos(taggedDeck, new CommanderSpellbookComboDataProvider());
   const comboEvaluations = evaluateDetectedCombos(detectedCombos, taggedDeck);
+  const ratingProvider = await loadOptionalRatingProvider(options.cardRatings);
   const score = scoreCommanderDeck({
     deck: taggedDeck,
     legality,
     comboEvaluations,
     consistency,
+    ...(ratingProvider ? { ratingProvider } : {}),
   });
   const explanation = generateDeckScoreExplanation({
     score,
@@ -80,3 +84,16 @@ async function main(): Promise<void> {
 }
 
 await main();
+
+async function loadOptionalRatingProvider(cardRatingsMode: "auto" | "off") {
+  if (cardRatingsMode === "off") {
+    return undefined;
+  }
+
+  try {
+    return await loadCardRatingProviderFromRatingStore(createRatingStore());
+  } catch (error) {
+    console.warn(`Could not load Rating Lab card ratings, using default card ratings. ${error instanceof Error ? error.message : ""}`);
+    return undefined;
+  }
+}

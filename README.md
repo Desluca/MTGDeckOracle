@@ -79,6 +79,13 @@ npm run analyze -- path/to/decklist.txt --format html
 ```
 
 La CLI usa Scryfall per i dati carta, una cache locale in `.cache/` e Commander Spellbook per cercare combo note.
+Di default prova anche a caricare i rating raccolti dal Rating Lab e usarli nel componente `card_quality`.
+
+Per disabilitare i rating esterni:
+
+```bash
+npm run analyze -- path/to/decklist.txt --no-card-ratings
+```
 
 ## Rating Lab
 
