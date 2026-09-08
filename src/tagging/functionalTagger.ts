@@ -1,4 +1,6 @@
+import { uniqueNormalizedNames } from "../card-data/index.js";
 import type { Card, DeckList, FunctionalTag } from "../domain/index.js";
+import type { CardTagProvider } from "./cardTagProvider.js";
 
 export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
   const tags = new Set<FunctionalTag>(card.evaluation.functionalTags);
@@ -68,20 +70,23 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
   return [...tags].sort();
 }
 
-export function tagCard(card: Card): Card {
+export function tagCard(card: Card, externalTags: readonly FunctionalTag[] = []): Card {
   return {
     ...card,
     evaluation: {
       ...card.evaluation,
-      functionalTags: inferFunctionalTags(card),
+      functionalTags: mergeFunctionalTags(inferFunctionalTags(card), externalTags),
     },
   };
 }
 
-export function tagDeckCards(deck: DeckList): DeckList {
+export function tagDeckCards(
+  deck: DeckList,
+  externalTagsByNormalizedName: ReadonlyMap<string, readonly FunctionalTag[]> = new Map(),
+): DeckList {
   const taggedCards = deck.cards.map((deckCard) => ({
     ...deckCard,
-    card: tagCard(deckCard.card),
+    card: tagCard(deckCard.card, externalTagsByNormalizedName.get(deckCard.card.identity.normalizedName) ?? []),
   }));
   const taggedCommanders = taggedCards.filter((deckCard) => deckCard.section === "commander");
 
@@ -93,6 +98,20 @@ export function tagDeckCards(deck: DeckList): DeckList {
     },
     cards: taggedCards,
   };
+}
+
+export async function tagDeckCardsWithProvider(deck: DeckList, tagProvider: CardTagProvider): Promise<DeckList> {
+  const normalizedNames = uniqueNormalizedNames(deck.cards.map((deckCard) => deckCard.card.identity.normalizedName));
+  const externalTagsByNormalizedName = await tagProvider.findTagsByNames(normalizedNames);
+
+  return tagDeckCards(deck, externalTagsByNormalizedName);
+}
+
+function mergeFunctionalTags(
+  inferredTags: readonly FunctionalTag[],
+  externalTags: readonly FunctionalTag[],
+): readonly FunctionalTag[] {
+  return [...new Set([...inferredTags, ...externalTags])].sort();
 }
 
 function isRamp(card: Card, oracleText: string): boolean {

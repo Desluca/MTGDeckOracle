@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { inferFunctionalTags, tagCard, tagDeckCards } from "../../src/tagging/index.js";
+import { inferFunctionalTags, tagCard, tagDeckCards, tagDeckCardsWithProvider, InMemoryCardTagProvider } from "../../src/tagging/index.js";
 import { createTestCard } from "../utils/cardFactory.js";
 import { createResolvedTestDeck, mainboardCard } from "../utils/resolvedDeckFactory.js";
 
@@ -79,5 +79,22 @@ describe("inferFunctionalTags", () => {
     const taggedDeck = tagDeckCards(deck);
 
     expect(taggedDeck.cards[1]?.card.evaluation.functionalTags).toContain("fast_mana");
+  });
+
+  it("merges external provider tags with inferred card tags", async () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Reanimate", oracleText: "Return target creature card from your graveyard to the battlefield." })),
+      ],
+    });
+    const provider = new InMemoryCardTagProvider([
+      { name: "Reanimate", source: "moxfield", tags: ["Combo", "Graveyard"] },
+    ]);
+
+    const taggedDeck = await tagDeckCardsWithProvider(deck, provider);
+
+    expect(taggedDeck.cards[1]?.card.evaluation.functionalTags).toEqual(
+      expect.arrayContaining(["combo_piece", "graveyard_synergy", "recursion"]),
+    );
   });
 });

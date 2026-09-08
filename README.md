@@ -80,11 +80,22 @@ npm run analyze -- path/to/decklist.txt --format html
 
 La CLI usa Scryfall per i dati carta, una cache locale in `.cache/` e Commander Spellbook per cercare combo note.
 Di default prova anche a caricare i rating raccolti dal Rating Lab e usarli nel componente `card_quality`.
+Se presente, legge anche `.cache/external-card-tags.json` per arricchire i tag funzionali con dati esterni tipo hub Archidekt/Moxfield.
 
 Per disabilitare i rating esterni:
 
 ```bash
 npm run analyze -- path/to/decklist.txt --no-card-ratings
+```
+
+Formato supportato per i tag esterni:
+
+```json
+{
+  "cards": [
+    { "name": "Reanimate", "source": "moxfield", "tags": ["Recursion", "Graveyard", "Combo"] }
+  ]
+}
 ```
 
 ## Rating Lab

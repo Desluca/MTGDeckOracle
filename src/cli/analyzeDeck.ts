@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { analyzeDeckStructure } from "../analysis/index.js";
@@ -14,7 +14,7 @@ import { loadCardRatingProviderFromRatingStore } from "../ratings/index.js";
 import { recommendDeckImprovements } from "../recommendations/index.js";
 import { renderReport } from "../report/index.js";
 import { scoreCommanderDeck } from "../scoring/index.js";
-import { tagDeckCards } from "../tagging/index.js";
+import { FileCardTagProvider, tagDeckCards, tagDeckCardsWithProvider } from "../tagging/index.js";
 import { validateCommanderDeck } from "../validation/index.js";
 
 async function main(): Promise<void> {
@@ -46,7 +46,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  const taggedDeck = tagDeckCards(resolution.deck);
+  const tagProvider = await loadOptionalCardTagProvider();
+  const taggedDeck = tagProvider ? await tagDeckCardsWithProvider(resolution.deck, tagProvider) : tagDeckCards(resolution.deck);
   const structure = analyzeDeckStructure(taggedDeck);
   const consistency = analyzeConsistency(taggedDeck);
   const detectedCombos = await detectDeckCombos(taggedDeck, new CommanderSpellbookComboDataProvider());
@@ -94,6 +95,17 @@ async function loadOptionalRatingProvider(cardRatingsMode: "auto" | "off") {
     return await loadCardRatingProviderFromRatingStore(createRatingStore());
   } catch (error) {
     console.warn(`Could not load Rating Lab card ratings, using default card ratings. ${error instanceof Error ? error.message : ""}`);
+    return undefined;
+  }
+}
+
+async function loadOptionalCardTagProvider(): Promise<FileCardTagProvider | undefined> {
+  const externalTagsPath = join(process.cwd(), ".cache", "external-card-tags.json");
+
+  try {
+    await access(externalTagsPath);
+    return new FileCardTagProvider(externalTagsPath);
+  } catch {
     return undefined;
   }
 }
