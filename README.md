@@ -93,10 +93,23 @@ Formato supportato per i tag esterni:
 ```json
 {
   "cards": [
-    { "name": "Reanimate", "source": "moxfield", "tags": ["Recursion", "Graveyard", "Combo"] }
+    {
+      "name": "Reanimate",
+      "source": "moxfield",
+      "tags": ["Recursion", "Graveyard"]
+    },
+    {
+      "name": "Underworld Breach",
+      "tags": [
+        { "tag": "Combo", "source": "commander_spellbook", "confidence": 0.95 },
+        { "tag": "Graveyard", "source": "archidekt", "confidence": 0.8 }
+      ]
+    }
   ]
 }
 ```
+
+Il formato strutturato permette di tenere traccia di provenienza e confidenza dei tag mentre il motore continua a usare i tag funzionali normalizzati.
 
 ## Rating Lab
 

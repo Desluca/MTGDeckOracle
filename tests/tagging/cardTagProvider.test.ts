@@ -25,6 +25,25 @@ describe("InMemoryCardTagProvider", () => {
 
     expect(tagsByName.get("reanimate")).toEqual(["graveyard_synergy", "recursion"]);
   });
+
+  it("preserves tag evidence source and confidence", async () => {
+    const provider = new InMemoryCardTagProvider([
+      {
+        name: "Underworld Breach",
+        tags: [
+          { tag: "Combo", source: "commander_spellbook" },
+          { tag: "Graveyard", source: "moxfield", confidence: 0.72 },
+        ],
+      },
+    ]);
+
+    const evidenceByName = await provider.findTagEvidenceByNames!(["underworld breach"]);
+
+    expect(evidenceByName.get("underworld breach")).toEqual([
+      { tag: "combo_piece", source: "commander_spellbook", confidence: 0.95, rawLabel: "Combo" },
+      { tag: "graveyard_synergy", source: "moxfield", confidence: 0.72, rawLabel: "Graveyard" },
+    ]);
+  });
 });
 
 describe("FileCardTagProvider", () => {
@@ -36,7 +55,7 @@ describe("FileCardTagProvider", () => {
       tagFile,
       JSON.stringify({
         cards: [
-          { name: "Skullclamp", source: "archidekt", tags: ["Card Draw", "Value"] },
+          { name: "Skullclamp", source: "archidekt", tags: ["Card Draw", { tag: "Value", confidence: 0.9 }] },
         ],
       }),
       "utf8",

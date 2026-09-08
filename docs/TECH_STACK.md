@@ -160,3 +160,4 @@ Il contextual evaluator considera anche una prima forma di "linea del comandante
 Il tagging resta deterministico con inferenza dal testo Oracle, ma puo' essere arricchito da un `CardTagProvider`.
 La CLI carica automaticamente `.cache/external-card-tags.json` se il file esiste.
 Questo file e' pensato come cache/import per segnali raccolti da hub esterni come Archidekt o Moxfield, normalizzando label comuni come `Card Draw`, `Removal`, `Graveyard` o `Board Wipes` nei tag interni.
+Il provider puo' anche conservare evidence strutturate con `source` e `confidence`, cosi' una futura pipeline sulle circa 30k carte potra' pesare diversamente tag da Oracle text, hub community, Commander Spellbook e override manuali.

@@ -5,12 +5,29 @@ import type { FunctionalTag } from "../domain/index.js";
 
 export interface CardTagProvider {
   findTagsByNames(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly FunctionalTag[]>>;
+  findTagEvidenceByNames?(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly CardTagEvidence[]>>;
 }
+
+export interface CardTagEvidence {
+  readonly tag: FunctionalTag;
+  readonly source: string;
+  readonly confidence: number;
+  readonly rawLabel?: string;
+}
+
+export interface ExternalCardTagEvidenceInput {
+  readonly tag?: string;
+  readonly label?: string;
+  readonly source?: string;
+  readonly confidence?: number;
+}
+
+export type ExternalCardTagInput = string | ExternalCardTagEvidenceInput;
 
 export interface ExternalCardTagEntry {
   readonly name?: string;
   readonly normalizedName?: string;
-  readonly tags: readonly string[];
+  readonly tags: readonly ExternalCardTagInput[];
   readonly source?: string;
 }
 
@@ -79,48 +96,56 @@ const EXTERNAL_TAG_ALIASES = new Map<string, FunctionalTag>([
 ]);
 
 export class InMemoryCardTagProvider implements CardTagProvider {
-  private readonly tagsByNormalizedName: ReadonlyMap<string, readonly FunctionalTag[]>;
+  private readonly evidenceByNormalizedName: ReadonlyMap<string, readonly CardTagEvidence[]>;
 
   constructor(entries: readonly ExternalCardTagEntry[]) {
-    this.tagsByNormalizedName = entriesToTagMap(entries);
+    this.evidenceByNormalizedName = entriesToEvidenceMap(entries);
   }
 
   async findTagsByNames(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly FunctionalTag[]>> {
-    const tagsByName = new Map<string, readonly FunctionalTag[]>();
+    return evidenceMapToTagMap(await this.findTagEvidenceByNames(normalizedNames));
+  }
+
+  async findTagEvidenceByNames(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly CardTagEvidence[]>> {
+    const evidenceByName = new Map<string, readonly CardTagEvidence[]>();
 
     for (const normalizedName of normalizedNames) {
-      const tags = this.tagsByNormalizedName.get(normalizedName);
-      if (tags && tags.length > 0) {
-        tagsByName.set(normalizedName, tags);
+      const evidence = this.evidenceByNormalizedName.get(normalizedName);
+      if (evidence && evidence.length > 0) {
+        evidenceByName.set(normalizedName, evidence);
       }
     }
 
-    return tagsByName;
+    return evidenceByName;
   }
 }
 
 export class FileCardTagProvider implements CardTagProvider {
-  private loadedTags?: Promise<ReadonlyMap<string, readonly FunctionalTag[]>>;
+  private loadedEvidence?: Promise<ReadonlyMap<string, readonly CardTagEvidence[]>>;
 
   constructor(private readonly filePath: string) {}
 
   async findTagsByNames(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly FunctionalTag[]>> {
-    const tagsByNormalizedName = await this.loadTags();
-    const tagsByName = new Map<string, readonly FunctionalTag[]>();
+    return evidenceMapToTagMap(await this.findTagEvidenceByNames(normalizedNames));
+  }
+
+  async findTagEvidenceByNames(normalizedNames: readonly string[]): Promise<ReadonlyMap<string, readonly CardTagEvidence[]>> {
+    const evidenceByNormalizedName = await this.loadEvidence();
+    const evidenceByName = new Map<string, readonly CardTagEvidence[]>();
 
     for (const normalizedName of normalizedNames) {
-      const tags = tagsByNormalizedName.get(normalizedName);
-      if (tags && tags.length > 0) {
-        tagsByName.set(normalizedName, tags);
+      const evidence = evidenceByNormalizedName.get(normalizedName);
+      if (evidence && evidence.length > 0) {
+        evidenceByName.set(normalizedName, evidence);
       }
     }
 
-    return tagsByName;
+    return evidenceByName;
   }
 
-  private loadTags(): Promise<ReadonlyMap<string, readonly FunctionalTag[]>> {
-    this.loadedTags ??= readExternalTagFile(this.filePath);
-    return this.loadedTags;
+  private loadEvidence(): Promise<ReadonlyMap<string, readonly CardTagEvidence[]>> {
+    this.loadedEvidence ??= readExternalTagFile(this.filePath);
+    return this.loadedEvidence;
   }
 }
 
@@ -135,75 +160,146 @@ export function normalizeExternalTagLabel(label: string): FunctionalTag | undefi
   return EXTERNAL_TAG_ALIASES.get(normalizedLabel);
 }
 
-async function readExternalTagFile(filePath: string): Promise<ReadonlyMap<string, readonly FunctionalTag[]>> {
+async function readExternalTagFile(filePath: string): Promise<ReadonlyMap<string, readonly CardTagEvidence[]>> {
   const rawContents = await readFile(filePath, "utf8");
   const parsed = JSON.parse(rawContents) as unknown;
 
   if (Array.isArray(parsed)) {
-    return entriesToTagMap(parsed as readonly ExternalCardTagEntry[]);
+    return entriesToEvidenceMap(parsed as readonly ExternalCardTagEntry[]);
   }
 
   if (isExternalCardTagFile(parsed)) {
-    return entriesToTagMap(parsed.cards);
+    return entriesToEvidenceMap(parsed.cards);
   }
 
   if (isTagDictionary(parsed)) {
-    return objectToTagMap(parsed);
+    return objectToEvidenceMap(parsed);
   }
 
   return new Map();
 }
 
-function entriesToTagMap(entries: readonly ExternalCardTagEntry[]): ReadonlyMap<string, readonly FunctionalTag[]> {
-  const tagsByName = new Map<string, FunctionalTag[]>();
+function entriesToEvidenceMap(entries: readonly ExternalCardTagEntry[]): ReadonlyMap<string, readonly CardTagEvidence[]> {
+  const evidenceByName = new Map<string, CardTagEvidence[]>();
 
   for (const entry of entries) {
+    if (!isExternalCardTagEntry(entry)) {
+      continue;
+    }
+
     const normalizedName = entry.normalizedName ?? (entry.name ? normalizeLookupName(entry.name) : undefined);
     if (!normalizedName) {
       continue;
     }
 
-    mergeTags(tagsByName, normalizedName, entry.tags);
+    mergeEvidence(evidenceByName, normalizedName, entry.tags, entry.source ?? "unknown");
   }
 
-  return freezeTagMap(tagsByName);
+  return freezeEvidenceMap(evidenceByName);
 }
 
-function objectToTagMap(entriesByName: Record<string, readonly string[]>): ReadonlyMap<string, readonly FunctionalTag[]> {
-  const tagsByName = new Map<string, FunctionalTag[]>();
+function objectToEvidenceMap(entriesByName: Record<string, readonly ExternalCardTagInput[]>): ReadonlyMap<string, readonly CardTagEvidence[]> {
+  const evidenceByName = new Map<string, CardTagEvidence[]>();
 
   for (const [name, tags] of Object.entries(entriesByName)) {
     if (Array.isArray(tags)) {
-      mergeTags(tagsByName, normalizeLookupName(name), tags);
+      mergeEvidence(evidenceByName, normalizeLookupName(name), tags, "unknown");
     }
   }
 
-  return freezeTagMap(tagsByName);
+  return freezeEvidenceMap(evidenceByName);
 }
 
-function mergeTags(tagsByName: Map<string, FunctionalTag[]>, normalizedName: string, externalTags: readonly string[]): void {
-  const tags = tagsByName.get(normalizedName) ?? [];
+function mergeEvidence(
+  evidenceByName: Map<string, CardTagEvidence[]>,
+  normalizedName: string,
+  externalTags: readonly ExternalCardTagInput[],
+  defaultSource: string,
+): void {
+  const evidence = evidenceByName.get(normalizedName) ?? [];
 
   for (const externalTag of externalTags) {
-    const tag = normalizeExternalTagLabel(externalTag);
-    if (tag && !tags.includes(tag)) {
-      tags.push(tag);
+    const tagEvidence = normalizeExternalTagEvidence(externalTag, defaultSource);
+    if (tagEvidence && !evidence.some((existing) => existing.tag === tagEvidence.tag && existing.source === tagEvidence.source)) {
+      evidence.push(tagEvidence);
     }
   }
 
-  if (tags.length > 0) {
-    tagsByName.set(normalizedName, tags);
+  if (evidence.length > 0) {
+    evidenceByName.set(normalizedName, evidence);
   }
 }
 
-function freezeTagMap(tagsByName: Map<string, FunctionalTag[]>): ReadonlyMap<string, readonly FunctionalTag[]> {
-  return new Map([...tagsByName.entries()].map(([name, tags]) => [name, [...tags].sort()]));
+function normalizeExternalTagEvidence(input: ExternalCardTagInput, defaultSource: string): CardTagEvidence | undefined {
+  const rawLabel = typeof input === "string" ? input : input.tag ?? input.label;
+  if (!rawLabel) {
+    return undefined;
+  }
+
+  const tag = normalizeExternalTagLabel(rawLabel);
+  if (!tag) {
+    return undefined;
+  }
+
+  const source = typeof input === "string" ? defaultSource : input.source ?? defaultSource;
+  const confidence = typeof input === "string" ? defaultConfidenceForSource(source) : normalizeConfidence(input.confidence ?? defaultConfidenceForSource(source));
+
+  return {
+    tag,
+    source,
+    confidence,
+    ...(rawLabel !== tag ? { rawLabel } : {}),
+  };
+}
+
+function defaultConfidenceForSource(source: string): number {
+  switch (source) {
+    case "manual":
+      return 1;
+    case "commander_spellbook":
+      return 0.95;
+    case "archidekt":
+    case "moxfield":
+      return 0.8;
+    default:
+      return 0.65;
+  }
+}
+
+function normalizeConfidence(confidence: number): number {
+  if (!Number.isFinite(confidence)) {
+    return 0.65;
+  }
+
+  return Math.min(1, Math.max(0, confidence));
+}
+
+function evidenceMapToTagMap(evidenceByName: ReadonlyMap<string, readonly CardTagEvidence[]>): ReadonlyMap<string, readonly FunctionalTag[]> {
+  return new Map(
+    [...evidenceByName.entries()].map(([name, evidence]) => [
+      name,
+      [...new Set(evidence.map((tagEvidence) => tagEvidence.tag))].sort(),
+    ]),
+  );
+}
+
+function freezeEvidenceMap(evidenceByName: Map<string, CardTagEvidence[]>): ReadonlyMap<string, readonly CardTagEvidence[]> {
+  return new Map(
+    [...evidenceByName.entries()].map(([name, evidence]) => [
+      name,
+      [...evidence].sort((left, right) => left.tag.localeCompare(right.tag) || left.source.localeCompare(right.source)),
+    ]),
+  );
 }
 
 function isExternalCardTagFile(value: unknown): value is Required<ExternalCardTagFile> {
   return typeof value === "object" && value !== null && "cards" in value && Array.isArray(value.cards);
 }
 
-function isTagDictionary(value: unknown): value is Record<string, readonly string[]> {
+function isTagDictionary(value: unknown): value is Record<string, readonly ExternalCardTagInput[]> {
   return typeof value === "object" && value !== null && Object.values(value).every((tags) => Array.isArray(tags));
+}
+
+function isExternalCardTagEntry(value: unknown): value is ExternalCardTagEntry {
+  return typeof value === "object" && value !== null && "tags" in value && Array.isArray(value.tags);
 }
