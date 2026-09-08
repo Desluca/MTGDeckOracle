@@ -60,7 +60,7 @@ Queste guide devono descrivere il codice attuale. Dopo ogni slice di sviluppo si
 
 Il motore di valutazione e' implementato e testato (Vitest + typecheck, CI su Node 22). La priorita' resta calibrare lo scoring su liste reali prima della UI report.
 
-Fatto: parser, validazione, tagging, combo Spellbook (seed allargato + cache), pipeline `analyzeCommanderDeck`, CLI, Rating Lab, 13 decklist reali oracle-tagged, consigli filtrati sul colore.
+Fatto: parser, validazione, tagging, combo Spellbook (seed allargato + cache), pipeline `analyzeCommanderDeck`, CLI, Rating Lab, 16 decklist reali oracle-tagged, consigli filtrati sul colore.
 
 In corso: catalogo Spellbook completo (resta fuori dal repo), altre liste competitive. Voto e bracket sono output distinti. Benchmark e CLI usano lo stesso ritaglio `combo_piece`.
 

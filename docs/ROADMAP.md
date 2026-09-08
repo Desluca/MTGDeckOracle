@@ -12,7 +12,7 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
 | M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
 | M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
-| M6 Calibrazione | In corso: profili sintetici + 13 liste reali; bracket da costruzione, non da fascia di voto |
+| M6 Calibrazione | In corso: profili sintetici + 16 liste reali; bracket da costruzione, non da fascia di voto |
 | M7 Miglioramenti avanzati | Parziale: recommendation strutturali filtrate sul colore; URL, budget, versioning no |
 
 Prossimi slice: altre liste competitive. UI report solo dopo.
@@ -147,9 +147,9 @@ Output:
 
 Stato: in corso. Si lavora su questa milestone prima di M5.
 
-Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 13 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, due illegalita').
+Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 16 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, Urza artifacts, Sythis enchantress, Teysa aristocrats, due illegalita').
 
-Aperto: seed Spellbook vs catalogo live; altre liste competitive. Il bracket non e' piu' una fascia del voto.
+Aperto: altre liste competitive (landfall, blink, control). Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 

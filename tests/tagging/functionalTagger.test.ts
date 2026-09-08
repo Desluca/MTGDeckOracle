@@ -199,6 +199,23 @@ describe("inferFunctionalTags", () => {
     ).toContain("stax");
     expect(inferFunctionalTags(createTestCard({ name: "Animate Dead", oracleText: "Enchant creature card in a graveyard. When Animate Dead enters, return enchanted creature card from your graveyard to the battlefield." }))).toEqual(expect.arrayContaining(["recursion", "graveyard_synergy"]));
     expect(inferFunctionalTags(createTestCard({ name: "Rest in Peace", oracleText: "Exile all graveyards. If a card or token would be put into a graveyard from anywhere, exile it instead." }))).toEqual(expect.arrayContaining(["graveyard_hate", "graveyard_synergy"]));
+    expect(
+      inferFunctionalTags(
+        createTestCard({
+          name: "Sythis, Harvest's Hand",
+          typeLine: "Legendary Enchantment Creature — Nymph",
+          oracleText: "Whenever you cast an enchantment spell, you gain 1 life and draw a card.",
+        }),
+      ),
+    ).toEqual(expect.arrayContaining(["enchantment_synergy", "lifegain", "card_draw"]));
+    expect(
+      inferFunctionalTags(
+        createTestCard({
+          name: "Teysa Karlov",
+          oracleText: "If a creature dying causes a triggered ability of a permanent you control to trigger, that ability triggers an additional time.",
+        }),
+      ),
+    ).toContain("aristocrats");
   });
 
   it("merges external provider tags with inferred card tags", async () => {

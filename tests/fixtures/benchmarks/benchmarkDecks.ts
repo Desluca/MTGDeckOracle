@@ -310,6 +310,27 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     { min: 74, max: 88 },
     2,
   ),
+  loadRealDeckBenchmark(
+    "real_urza_artifacts",
+    "urza-artifacts.deck",
+    "Real Urza artifact list with Isochron and a dense rock package.",
+    { min: 86, max: 93 },
+    4,
+  ),
+  loadRealDeckBenchmark(
+    "real_sythis_enchantress",
+    "sythis-enchantress.deck",
+    "Real Sythis enchantress list with no Game Changers.",
+    { min: 70, max: 86 },
+    2,
+  ),
+  loadRealDeckBenchmark(
+    "real_teysa_aristocrats",
+    "teysa-aristocrats.deck",
+    "Real Teysa aristocrats list with a few Game Changers and a drain package.",
+    { min: 70, max: 86 },
+    3,
+  ),
 ];
 
 interface ProfileDeckOptions {

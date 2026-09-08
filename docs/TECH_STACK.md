@@ -147,6 +147,9 @@ tests/
         grand-arbiter-stax.deck
         light-paws-voltron.deck
         rhys-tokens.deck
+        urza-artifacts.deck
+        sythis-enchantress.deck
+        teysa-aristocrats.deck
         muldrotha-casual.deck
         pantlaza-precon.deck
         pantlaza-precon-modded.deck
@@ -172,14 +175,15 @@ La cache disco in `.cache/commander-spellbook-combos.json` ha sempre priorita' s
 Il seed in `knownComboSeed` e' il catalogo riproducibile di CI e `--offline`: poche linee usate dalle fixture, non il dump Spellbook.
 Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
 Il tag `stax` copre anche testi tipo "each player can't" e "cost {1} more".
+Enchantress e aristocrats riconoscono anche "cast an enchantment" e "creature dying".
 
 CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
 
 ## Prossimo Step Tecnico
 
-Dopo path di scoring unificato e consigli filtrati sul colore:
+Dopo liste artifact, enchantress e aristocrats:
 
-1. altre liste competitive;
+1. altre liste competitive (landfall, blink, control);
 2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online

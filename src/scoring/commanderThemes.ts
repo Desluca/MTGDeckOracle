@@ -57,7 +57,7 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     theme: "aristocrats",
     targetId: "aristocrats",
     commanderTags: ["aristocrats"],
-    oracleHints: ["sacrifice a creature", "whenever a creature you control dies", "whenever you sacrifice"],
+    oracleHints: ["sacrifice a creature", "whenever a creature you control dies", "whenever you sacrifice", "creature dying"],
     oracleMatcher: (oracleText) => oracleText.includes("sacrifice") && oracleText.includes("creature"),
   },
   {
@@ -70,7 +70,7 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     theme: "enchantments",
     targetId: "enchantments",
     commanderTags: ["enchantment_synergy"],
-    oracleHints: ["enchantments you control", "enchantment you control", "constellation"],
+    oracleHints: ["enchantments you control", "enchantment you control", "constellation", "cast an enchantment"],
   },
   {
     theme: "equipment",

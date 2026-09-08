@@ -226,6 +226,9 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 - `grand-arbiter-stax.deck` (3);
 - `light-paws-voltron.deck` (2);
 - `rhys-tokens.deck` (2);
+- `urza-artifacts.deck` (4);
+- `sythis-enchantress.deck` (2);
+- `teysa-aristocrats.deck` (3);
 - `gishath-bad-mana.deck` (2);
 - `whtz-120.deck` (4, oversized legale con Isochron);
 - `kinnan-illegal-size.deck` (4);
@@ -233,7 +236,7 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 
 I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
 
-Prossimo passo calibrazione: altre liste competitive.
+Prossimo passo calibrazione: altre liste competitive (landfall, blink, control).
 
 ## Decisioni Prese
 

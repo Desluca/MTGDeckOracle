@@ -243,7 +243,9 @@ function isAristocrats(oracleText: string): boolean {
   return (
     oracleText.includes("sacrifice a creature") ||
     oracleText.includes("whenever a creature you control dies") ||
-    oracleText.includes("whenever you sacrifice")
+    oracleText.includes("whenever you sacrifice") ||
+    oracleText.includes("creature dying") ||
+    oracleText.includes("creature dies")
   );
 }
 
@@ -251,6 +253,7 @@ function isEnchantmentSynergy(card: Card, oracleText: string, typeLine: string):
   return (
     oracleText.includes("enchantments you control") ||
     oracleText.includes("enchantment you control") ||
+    oracleText.includes("cast an enchantment") ||
     oracleText.includes("constellation") ||
     typeLine.includes("enchantress")
   );
