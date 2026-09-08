@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { InMemoryCardRatingProvider } from "../../src/ratings/index.js";
 import { scoreCommanderDeck } from "../../src/scoring/index.js";
 import type { CommanderLegalityReport, ComboEvaluation } from "../../src/domain/index.js";
 import { createTestCard } from "../utils/cardFactory.js";
@@ -104,6 +105,31 @@ describe("scoreCommanderDeck", () => {
     const saturatedCardQuality = saturatedRampScore.components.find((component) => component.category === "card_quality")?.rawScore;
 
     expect(scarceCardQuality).toBeGreaterThan(saturatedCardQuality ?? 0);
+  });
+
+  it("uses an external rating provider for card quality", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Premium Spell", functionalTags: ["card_draw"], basePowerRating: 1 }), 10),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 89),
+      ],
+    });
+    const withoutProvider = scoreCommanderDeck({
+      deck,
+      legality: legalReport(),
+    });
+    const withProvider = scoreCommanderDeck({
+      deck,
+      legality: legalReport(),
+      ratingProvider: new InMemoryCardRatingProvider({
+        "Premium Spell": 2100,
+      }),
+    });
+
+    const withoutProviderCardQuality = withoutProvider.components.find((component) => component.category === "card_quality")?.rawScore ?? 0;
+    const withProviderCardQuality = withProvider.components.find((component) => component.category === "card_quality")?.rawScore ?? 0;
+
+    expect(withProviderCardQuality).toBeGreaterThan(withoutProviderCardQuality);
   });
 });
 

@@ -15,6 +15,7 @@ export * from "./parser/index.js";
 export * from "./probability/index.js";
 export * from "./recommendations/index.js";
 export * from "./report/index.js";
+export * from "./ratings/index.js";
 export * from "./rating-lab/index.js";
 export * from "./scoring/index.js";
 export * from "./tagging/index.js";

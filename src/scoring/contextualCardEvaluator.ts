@@ -1,4 +1,5 @@
 import type { DeckCard, DeckList, FunctionalTag } from "../domain/index.js";
+import { eloRatingToBasePowerRating, type CardRatingProvider } from "../ratings/index.js";
 
 export interface CardContribution {
   readonly cardName: string;
@@ -6,6 +7,10 @@ export interface CardContribution {
   readonly dynamicMultiplier: number;
   readonly contextualValue: number;
   readonly reasons: readonly string[];
+}
+
+export interface CardContributionOptions {
+  readonly ratingProvider?: CardRatingProvider;
 }
 
 interface RoleTarget {
@@ -24,19 +29,20 @@ const ROLE_TARGETS: readonly RoleTarget[] = [
   { tags: ["land", "mana_fixing"], idealPerHundred: 37, label: "mana base" },
 ];
 
-export function evaluateDeckCardContributions(deck: DeckList): readonly CardContribution[] {
+export function evaluateDeckCardContributions(deck: DeckList, options: CardContributionOptions = {}): readonly CardContribution[] {
   const deckCards = commanderDeckCards(deck);
   const deckSize = countCards(deckCards);
 
-  return deckCards.map((deckCard) => evaluateCardContribution(deckCard, deckCards, deckSize));
+  return deckCards.map((deckCard) => evaluateCardContribution(deckCard, deckCards, deckSize, options));
 }
 
 export function evaluateCardContribution(
   deckCard: DeckCard,
   deckCards: readonly DeckCard[],
   deckSize = countCards(deckCards),
+  options: CardContributionOptions = {},
 ): CardContribution {
-  const baseValue = deckCard.card.evaluation.basePowerRating ?? 5;
+  const baseValue = getBasePowerRating(deckCard, options.ratingProvider);
   const relevantTargets = ROLE_TARGETS.filter((target) =>
     target.tags.some((tag) => deckCard.card.evaluation.functionalTags.includes(tag)),
   );
@@ -61,6 +67,16 @@ export function evaluateCardContribution(
     contextualValue: roundValue(clamp(baseValue * dynamicMultiplier, 0, 10)),
     reasons: roleMultipliers.map((item) => item.reason),
   };
+}
+
+function getBasePowerRating(deckCard: DeckCard, ratingProvider: CardRatingProvider | undefined): number {
+  const externalEloRating = ratingProvider?.getEloRating(deckCard.card);
+
+  if (externalEloRating !== undefined) {
+    return eloRatingToBasePowerRating(externalEloRating);
+  }
+
+  return deckCard.card.evaluation.basePowerRating ?? 5;
 }
 
 function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deckSize: number): { readonly multiplier: number; readonly reason: string } {

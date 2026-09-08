@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { InMemoryCardRatingProvider } from "../../src/ratings/index.js";
 import { evaluateCardContribution } from "../../src/scoring/index.js";
 import { createTestCard } from "../utils/cardFactory.js";
 import { createResolvedTestDeck, mainboardCard } from "../utils/resolvedDeckFactory.js";
@@ -37,5 +38,19 @@ describe("evaluateCardContribution", () => {
 
     expect(contribution.contextualValue).toBeLessThan(contribution.baseValue);
     expect(contribution.reasons[0]).toContain("Nessun ruolo");
+  });
+
+  it("uses external Elo ratings as the base card value when available", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [mainboardCard(createTestCard({ name: "Sol Ring", functionalTags: ["ramp"], basePowerRating: 1 }))],
+    });
+    const ratingProvider = new InMemoryCardRatingProvider({
+      "Sol Ring": 2100,
+    });
+
+    const contribution = evaluateCardContribution(deck.cards[1]!, deck.cards, undefined, { ratingProvider });
+
+    expect(contribution.baseValue).toBe(10);
+    expect(contribution.contextualValue).toBeGreaterThan(1);
   });
 });

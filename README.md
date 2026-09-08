@@ -6,6 +6,8 @@ L'obiettivo non e' dare un voto superficiale basato solo sulle carte piu' famose
 
 Il risultato finale sara' un punteggio da 0 a 100 accompagnato da una spiegazione leggibile, utile sia a chi vuole migliorare il mazzo sia a chi vuole capire se il power level e' adatto al proprio tavolo.
 
+Il motore di scoring puo' gia' ricevere rating Elo raccolti dal Rating Lab tramite un provider dedicato, normalizzandoli in valori carta 0-10 per il componente `card_quality`.
+
 ## Problema
 
 Molti strumenti esistenti sottovalutano aspetti fondamentali della valutazione di un mazzo Commander. Un esempio banale ma importante: se un sito premia solo la quantita' di carte forti, una lista da 200 carte puo' ottenere un punteggio altissimo anche se in Commander il mazzo deve essere da 100 carte e, soprattutto, aggiungere troppe carte riduce drasticamente la probabilita' di pescare quelle giuste.

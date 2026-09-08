@@ -93,6 +93,9 @@ src/
     hypergeometric.ts
   recommendations/
     recommendationEngine.ts
+  ratings/
+    cardRatingProvider.ts
+    ratingStoreCardRatingProvider.ts
   report/
     reportRenderer.ts
   rating-lab/
@@ -142,3 +145,9 @@ Rotte principali:
 - `/health`: health check per hosting provider.
 
 In sviluppo locale, se `DATABASE_URL` non e' configurato, il laboratorio usa ancora il file JSON in `.cache/`.
+
+## Rating Data Nel Core
+
+Il core scoring puo' ricevere un `CardRatingProvider` esterno.
+I rating Elo raccolti dal Rating Lab vengono normalizzati in valori carta 0-10, mantenendo 1500 come valore neutro circa 5/10.
+Questo permette al componente `card_quality` di usare dati reali raccolti dal laboratorio senza rendere il motore dipendente dalla UI o dal database.

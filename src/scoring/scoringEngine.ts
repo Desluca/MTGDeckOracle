@@ -14,6 +14,7 @@ import type { ComboEvaluation } from "../domain/index.js";
 import { analyzeDeckStructure } from "../analysis/index.js";
 import type { ConsistencyAnalysis } from "../consistency/index.js";
 import { analyzeConsistency } from "../consistency/index.js";
+import type { CardRatingProvider } from "../ratings/index.js";
 import { evaluateCardContribution } from "./contextualCardEvaluator.js";
 
 export interface ScoreCommanderDeckInput {
@@ -21,6 +22,7 @@ export interface ScoreCommanderDeckInput {
   readonly legality: CommanderLegalityReport;
   readonly comboEvaluations?: readonly ComboEvaluation[];
   readonly consistency?: ConsistencyAnalysis;
+  readonly ratingProvider?: CardRatingProvider;
   readonly weights?: ScoringWeights;
 }
 
@@ -35,7 +37,7 @@ export function scoreCommanderDeck(input: ScoreCommanderDeckInput): ScoreBreakdo
     component("legality", "Legalita' e struttura", input.legality.legalityCap, weights.legality, explainLegality(input.legality)),
     component("consistency", "Consistenza", consistency.score, weights.consistency, "Probabilita' di accedere a terre, ramp, draw e win condition."),
     component("game_plan", "Piano di gioco", scoreGamePlan(roleCount), weights.gamePlan, "Premia densita' di carte con ruoli funzionali chiari."),
-    component("card_quality", "Qualita' carte", scoreCardQuality(input.deck), weights.cardQuality, "Media dei rating carta disponibili, con default neutro."),
+    component("card_quality", "Qualita' carte", scoreCardQuality(input.deck, input.ratingProvider), weights.cardQuality, "Media dei rating carta disponibili, con default neutro."),
     component("mana_base", "Mana base", scoreManaBase(structure.composition.landCount, structure.composition.totalCards), weights.manaBase, "Valuta il numero di terre rispetto alla dimensione del mazzo."),
     component("card_advantage", "Card advantage", scoreDensity(roleCount(["card_draw", "card_selection"]), structure.composition.totalCards, 10), weights.cardAdvantage, "Valuta draw e selezione carte."),
     component("interaction", "Interaction", scoreDensity(roleCount(["spot_removal", "board_wipe", "counterspell", "graveyard_hate"]), structure.composition.totalCards, 9), weights.interaction, "Valuta risposte a minacce e combo."),
@@ -90,7 +92,7 @@ function scoreGamePlan(roleCount: (tags: readonly FunctionalTag[]) => number): n
   return clampScore(35 + proactive * 3 + reactive * 2);
 }
 
-function scoreCardQuality(deck: DeckList): number {
+function scoreCardQuality(deck: DeckList, ratingProvider: CardRatingProvider | undefined): number {
   const deckCards = commanderDeckCards(deck).filter((deckCard) => !deckCard.card.rules.types.includes("land"));
   const deckSize = deckCards.reduce((total, deckCard) => total + deckCard.quantity, 0);
 
@@ -99,7 +101,7 @@ function scoreCardQuality(deck: DeckList): number {
   }
 
   const totalContextualValue = deckCards.reduce((total, deckCard) => {
-    const contribution = evaluateCardContribution(deckCard, deckCards, deckSize);
+    const contribution = evaluateCardContribution(deckCard, deckCards, deckSize, ratingProvider ? { ratingProvider } : {});
     return total + contribution.contextualValue * deckCard.quantity;
   }, 0);
 
