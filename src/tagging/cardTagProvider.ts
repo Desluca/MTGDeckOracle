@@ -102,6 +102,8 @@ const EXTERNAL_TAG_ALIASES = new Map<string, FunctionalTag>([
   ["landfall", "landfall"],
   ["blink", "blink"],
   ["flicker", "blink"],
+  ["reanimator", "recursion"],
+  ["reanimate", "recursion"],
   ["mana", "ramp"],
   ["mana acceleration", "ramp"],
   ["mana fixing", "mana_fixing"],

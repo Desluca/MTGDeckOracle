@@ -352,6 +352,20 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     { min: 80, max: 92 },
     4,
   ),
+  loadRealDeckBenchmark(
+    "real_meren_reanimator",
+    "meren-reanimator.deck",
+    "Real Meren reanimator list with mill, reanimate spells, and two Game Changers.",
+    { min: 76, max: 90 },
+    3,
+  ),
+  loadRealDeckBenchmark(
+    "real_krenko_goblins",
+    "krenko-goblins.deck",
+    "Real Krenko goblin tribal list with token payoffs and a real mana base.",
+    { min: 66, max: 82 },
+    3,
+  ),
 ];
 
 interface ProfileDeckOptions {

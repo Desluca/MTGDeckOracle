@@ -39,6 +39,7 @@ const ROLE_TARGETS: readonly RoleTarget[] = [
   { id: "landfall", tags: ["landfall"], idealPerHundred: 8, label: "landfall package" },
   { id: "blink", tags: ["blink"], idealPerHundred: 8, label: "blink package" },
   { id: "control", tags: ["counterspell"], idealPerHundred: 8, label: "control package" },
+  { id: "reanimator", tags: ["recursion"], idealPerHundred: 8, label: "reanimator package" },
   { id: "win_condition", tags: ["win_condition", "combo_payoff"], idealPerHundred: 4, label: "win condition" },
   { id: "tutor", tags: ["tutor"], idealPerHundred: 5, label: "tutor" },
   { id: "mana_base", tags: ["land", "mana_fixing"], idealPerHundred: 37, label: "mana base" },

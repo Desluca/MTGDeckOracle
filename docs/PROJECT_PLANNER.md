@@ -232,6 +232,8 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 - `aesi-landfall.deck` (3);
 - `brago-blink.deck` (3);
 - `teferi-control.deck` (4);
+- `meren-reanimator.deck` (3);
+- `krenko-goblins.deck` (3);
 - `gishath-bad-mana.deck` (2);
 - `whtz-120.deck` (4, oversized legale con Isochron);
 - `kinnan-illegal-size.deck` (4);
@@ -239,7 +241,7 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 
 I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
 
-Prossimo passo calibrazione: altre liste competitive (reanimator, tribal).
+Prossimo passo calibrazione: spiegazioni manuali per lista (`expected_main_findings`).
 
 ## Decisioni Prese
 

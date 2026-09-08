@@ -13,7 +13,8 @@ export type CommanderTheme =
   | "tribal"
   | "landfall"
   | "blink"
-  | "control";
+  | "control"
+  | "reanimator";
 
 interface CommanderThemeRule {
   readonly theme: CommanderTheme;
@@ -107,6 +108,13 @@ const THEME_RULES: readonly CommanderThemeRule[] = [
     commanderTags: ["counterspell"],
     oracleHints: ["cast spells only any time", "each opponent can cast spells only"],
   },
+  {
+    theme: "reanimator",
+    targetId: "reanimator",
+    commanderTags: [],
+    oracleHints: [],
+    oracleMatcher: isReanimatorOracle,
+  },
 ];
 
 export function inferCommanderThemes(deckCards: readonly DeckCard[]): readonly CommanderTheme[] {
@@ -160,5 +168,19 @@ function isBlinkOracle(oracleText: string): boolean {
     oracleText.includes("return") &&
     oracleText.includes("battlefield") &&
     (oracleText.includes("you control") || oracleText.includes("owner's control") || oracleText.includes("under your control"))
+  );
+}
+
+function isReanimatorOracle(oracleText: string): boolean {
+  if (!oracleText.includes("graveyard") || !oracleText.includes("creature")) {
+    return false;
+  }
+
+  return (
+    oracleText.includes("battlefield") ||
+    oracleText.includes("play a creature") ||
+    oracleText.includes("play one creature") ||
+    oracleText.includes("cast creature") ||
+    oracleText.includes("cast a creature")
   );
 }

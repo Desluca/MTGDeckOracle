@@ -178,6 +178,11 @@ describe("evaluateCardContribution", () => {
       commanderOracleText: "Each opponent can cast spells only any time they could cast a sorcery.",
       packageTag: "counterspell" as const,
     },
+    {
+      commanderName: "Meren of Clan Nel Toth",
+      commanderOracleText: "Return target creature card from your graveyard to the battlefield.",
+      packageTag: "recursion" as const,
+    },
   ])("lets $commanderName support a larger $packageTag package", ({ commanderName, commanderOracleText, packageTag, ...rest }) => {
     const { themed, generic } = packageDecks({
       commanderName,
@@ -197,7 +202,7 @@ describe("evaluateCardContribution", () => {
 function packageDecks(options: {
   readonly commanderName: string;
   readonly commanderOracleText: string;
-  readonly packageTag: "token_synergy" | "lifegain" | "aristocrats" | "counters_synergy" | "enchantment_synergy" | "equipment_synergy" | "tribal_synergy" | "spellslinger" | "landfall" | "blink" | "counterspell";
+  readonly packageTag: "token_synergy" | "lifegain" | "aristocrats" | "counters_synergy" | "enchantment_synergy" | "equipment_synergy" | "tribal_synergy" | "spellslinger" | "landfall" | "blink" | "counterspell" | "recursion";
   readonly packageCount: number;
   readonly commanderTypeLine?: string;
   readonly commanderTags?: readonly ("tribal_synergy")[];

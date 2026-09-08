@@ -102,6 +102,11 @@ describe("inferCommanderThemes", () => {
       oracleText: "Flash. Creature cards you own that aren't on the battlefield have flash. Each opponent can cast spells only any time they could cast a sorcery.",
       expected: "control",
     },
+    {
+      name: "Meren of Clan Nel Toth",
+      oracleText: "Whenever another creature you control dies, you get an experience counter. At the beginning of your end step, return target creature card from your graveyard to your hand or the battlefield.",
+      expected: "reanimator",
+    },
   ] as const)("detects $expected from $name", ({ name, oracleText, expected, ...rest }) => {
     const deck = createResolvedTestDeck({
       commanders: [
@@ -115,6 +120,22 @@ describe("inferCommanderThemes", () => {
     });
 
     expect(inferCommanderThemes(deck.cards)).toContain(expected);
+  });
+
+  it("does not treat value-from-graveyard commanders as reanimator", () => {
+    const deck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Muldrotha, the Gravetide",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Elemental Avatar",
+          oracleText: "During each of your turns, you may play a land card and a permanent spell of each permanent type from your graveyard.",
+        }),
+      ],
+    });
+
+    expect(inferCommanderThemes(deck.cards)).toContain("graveyard");
+    expect(inferCommanderThemes(deck.cards)).not.toContain("reanimator");
   });
 
   it("does not treat gaining control as lifegain", () => {

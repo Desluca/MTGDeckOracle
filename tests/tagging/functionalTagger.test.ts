@@ -188,6 +188,8 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(createTestCard({ name: "Cultivate", oracleText: "Search your library for up to two basic land cards, put one onto the battlefield tapped and the other into your hand." }))).not.toContain("landfall");
     expect(inferFunctionalTags(createTestCard({ name: "Lotus Cobra", oracleText: "Landfall — Whenever a land you control enters, add one mana of any color." }))).toContain("landfall");
     expect(inferFunctionalTags(createTestCard({ name: "Cloudshift", oracleText: "Exile target creature you control, then return that card to the battlefield under its owner's control." }))).toContain("blink");
+    expect(inferFunctionalTags(createTestCard({ name: "Reanimate", oracleText: "Put target creature card from a graveyard onto the battlefield under your control. You lose life equal to its mana value." }))).toContain("recursion");
+    expect(inferFunctionalTags(createTestCard({ name: "Endurance", oracleText: "When this creature enters, you may exile target card from a graveyard. Put that card on the bottom of its owner's library." }))).not.toContain("recursion");
   });
 
   it("tags win conditions, stax, recursion and graveyard hate", () => {

@@ -43,7 +43,7 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("protection");
   }
 
-  if (oracleText.includes("from your graveyard") || oracleText.includes("from a graveyard to")) {
+  if (isRecursion(oracleText)) {
     tags.add("recursion");
   }
 
@@ -273,6 +273,17 @@ function isEquipmentSynergy(oracleText: string, typeLine: string): boolean {
     oracleText.includes("equipped creature") ||
     oracleText.includes("equipment you control") ||
     oracleText.includes("attach") && oracleText.includes("equipment")
+  );
+}
+
+function isRecursion(oracleText: string): boolean {
+  return (
+    oracleText.includes("from your graveyard") ||
+    oracleText.includes("from a graveyard onto") ||
+    oracleText.includes("from a graveyard to") ||
+    (oracleText.includes("graveyard") &&
+      oracleText.includes("battlefield") &&
+      (oracleText.includes("return") || oracleText.includes("put all") || oracleText.includes("put target") || oracleText.includes("put that") || oracleText.includes("put those") || oracleText.includes("put the enchanted")))
   );
 }
 

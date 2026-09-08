@@ -12,10 +12,10 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
 | M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
 | M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
-| M6 Calibrazione | In corso: profili sintetici + 19 liste reali; bracket da costruzione, non da fascia di voto |
+| M6 Calibrazione | In corso: profili sintetici + 21 liste reali; bracket da costruzione, non da fascia di voto |
 | M7 Miglioramenti avanzati | Parziale: recommendation strutturali filtrate sul colore; URL, budget, versioning no |
 
-Prossimi slice: altre liste competitive. UI report solo dopo.
+Prossimi slice: spiegazioni manuali per lista. UI report solo dopo.
 
 ## Milestone 0 - Fondamenta
 
@@ -147,9 +147,9 @@ Output:
 
 Stato: in corso. Si lavora su questa milestone prima di M5.
 
-Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 19 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, Urza artifacts, Sythis enchantress, Teysa aristocrats, Aesi landfall, Brago blink, Teferi control, due illegalita').
+Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 21 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, Urza artifacts, Sythis enchantress, Teysa aristocrats, Aesi landfall, Brago blink, Teferi control, Meren reanimator, Krenko goblins, due illegalita').
 
-Aperto: altre liste competitive (reanimator, tribal). Il bracket non e' piu' una fascia del voto.
+Aperto: spiegazioni manuali per lista (`expected_main_findings`). Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 

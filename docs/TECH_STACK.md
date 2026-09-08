@@ -173,14 +173,15 @@ Il tagging tratta shroud come protection, insieme a hexproof e indestructible.
 Il tag `stax` copre anche testi tipo "each player can't" e "cost {1} more".
 Enchantress e aristocrats riconoscono anche "cast an enchantment" e "creature dying".
 Landfall e blink riconoscono "a land you control enters" e exile-then-return sul permanente che controlli; Cultivate e Path to Exile restano fuori.
+Reanimator riconosce il ritorno di creature dal cimitero al campo (o il cast dal cimitero); Muldrotha resta graveyard, non reanimator. Recursion copre anche "from a graveyard onto the battlefield", senza taggare Endurance.
 
 CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm test`, `npm run typecheck`.
 
 ## Prossimo Step Tecnico
 
-Dopo liste landfall, blink e control:
+Dopo liste reanimator e tribal:
 
-1. altre liste competitive (reanimator, tribal);
+1. spiegazioni manuali per lista (`expected_main_findings`);
 2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online
@@ -206,7 +207,7 @@ Il core scoring puo' ricevere un `CardRatingProvider` esterno.
 I rating Elo raccolti dal Rating Lab vengono normalizzati in valori carta 0-10, mantenendo 1500 come valore neutro circa 5/10.
 Questo permette al componente `card_quality` di usare dati reali raccolti dal laboratorio senza rendere il motore dipendente dalla UI o dal database.
 
-Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment, tribal, landfall, blink o control, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
+Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment, tribal, landfall, blink, control o reanimator, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
 `classifyCommanderBracket` assegna il tavolo Wizards da Game Changers, combo da due carte, extra turn e mass land denial. Il voto resta indipendente.
 Il piano di gioco premia densita' di ruoli e copertura delle categorie chiave, non il semplice conteggio di carte taggate.
 La mana base abbassa il target di terre se il mazzo ha gia' ramp/fast mana, cosi' un profilo cEDH con poche terre non viene trattato come un precon senza accelerazione.
