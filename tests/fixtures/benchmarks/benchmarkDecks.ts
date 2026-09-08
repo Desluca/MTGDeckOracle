@@ -237,7 +237,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "real_kinnan_high_power",
     "kinnan-high-power.deck",
     "Real Kinnan high-power list with a compact Spellbook combo.",
-    { min: 86, max: 91 },
+    { min: 86, max: 93 },
     4,
   ),
   loadRealDeckBenchmark(

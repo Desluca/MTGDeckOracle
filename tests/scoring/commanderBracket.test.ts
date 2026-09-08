@@ -47,7 +47,7 @@ describe("classifyCommanderBracket", () => {
     expect(
       classifyCommanderBracket({
         deck,
-        finalScore: 91,
+        finalScore: 92,
         legality: legalReport(),
         detectedCombos: combos,
       }).bracket,

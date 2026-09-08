@@ -13,9 +13,9 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
 | M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
 | M6 Calibrazione | In corso: profili sintetici + 13 liste reali; bracket da costruzione, non da fascia di voto |
-| M7 Miglioramenti avanzati | Quasi no (recommendation strutturali si; URL, budget, versioning no) |
+| M7 Miglioramenti avanzati | Parziale: recommendation strutturali filtrate sul colore; URL, budget, versioning no |
 
-Prossimi slice: altre liste competitive, recommendation filtrate sul colore. UI report solo dopo.
+Prossimi slice: altre liste competitive. UI report solo dopo.
 
 ## Milestone 0 - Fondamenta
 
@@ -169,7 +169,7 @@ Output:
 
 ## Milestone 7 - Miglioramenti Avanzati
 
-Stato: non iniziato, tranne recommendation strutturali gia' in CLI (ancora poco filtrate su identita' colore).
+Stato: parziale. Recommendation strutturali in CLI, filtrate sull'identita' colore del comandante. Restano URL, budget, versioning e UI.
 
 Obiettivo: aumentare qualita' e profondita' del report.
 

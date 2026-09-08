@@ -5,7 +5,7 @@ import { uniqueNormalizedNames } from "../../../src/card-data/index.js";
 import { detectCombo, evaluateDetectedCombos } from "../../../src/combo/index.js";
 import { resolveDeckListFromMap } from "../../../src/deck/index.js";
 import { parseDeckList } from "../../../src/parser/index.js";
-import { tagDeckCards } from "../../../src/tagging/index.js";
+import { createComboTagsByName, tagDeckCards } from "../../../src/tagging/index.js";
 import { validateCommanderDeck } from "../../../src/validation/index.js";
 import { createCardMap } from "../../utils/cardFactory.js";
 import { stapleCards } from "../cards/stapleCards.js";
@@ -32,9 +32,14 @@ export function loadRealDeckBenchmark(
     throw new Error(`Unresolved cards in ${fileName}: ${resolution.unresolvedNames.join(", ")}`);
   }
 
-  const deck = tagDeckCards(resolution.deck);
-  const availableNames = new Set(uniqueNormalizedNames(deck.cards.map((deckCard) => deckCard.card.identity.normalizedName)));
-  const detectedCombos = fixtureCombos.map((combo) => detectCombo(combo, availableNames)).filter((combo) => combo.presentPieces.length > 0);
+  const baseTaggedDeck = tagDeckCards(resolution.deck);
+  const availableNames = new Set(
+    uniqueNormalizedNames(baseTaggedDeck.cards.map((deckCard) => deckCard.card.identity.normalizedName)),
+  );
+  const detectedCombos = fixtureCombos
+    .map((combo) => detectCombo(combo, availableNames))
+    .filter((combo) => combo.presentPieces.length > 0);
+  const deck = tagDeckCards(baseTaggedDeck, createComboTagsByName(detectedCombos));
   const comboEvaluations = evaluateDetectedCombos(detectedCombos, deck);
   const legality = validateCommanderDeck(parsed, { cardsByNormalizedName });
 

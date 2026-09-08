@@ -220,7 +220,7 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 - `pantlaza-precon.deck` (2);
 - `pantlaza-precon-modded.deck` (2);
 - `muldrotha-casual.deck` (3);
-- `kinnan-high-power.deck` (4, range 86-91 nei benchmark di scoring);
+- `kinnan-high-power.deck` (4, range 86-93 nei benchmark di scoring, allineato alla pipeline);
 - `thrasios-tymna-cedh.deck` (5);
 - `kess-spellslinger.deck` (4);
 - `grand-arbiter-stax.deck` (3);
@@ -233,7 +233,7 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 
 I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
 
-Prossimo passo calibrazione: altre liste competitive e unificare il path di scoring con `analyzeCommanderDeck` cosi' CLI e test non divergono sul tag `combo_piece`.
+Prossimo passo calibrazione: altre liste competitive.
 
 ## Decisioni Prese
 
@@ -252,7 +252,7 @@ Ancora aperte, non bloccanti per lo scoring:
 ## Rischi
 
 - Valutazione percepita come arbitraria se non spiegata bene.
-- Path CLI/pipeline vs benchmark di scoring: `combo_piece` puo' ancora spostare di un punto il voto, non il bracket 1-3.
+- Path CLI/pipeline vs benchmark: i due path ritagliano `combo_piece` allo stesso modo; la soglia 4 vs 5 e' 93, cosi' un high-power a 92 resta Optimized.
 - Seed combo piccolo vs catalogo Spellbook live: voti diversi online e `--offline` se manca la cache disco.
 - Carte difficili da taggare automaticamente.
 - Power level Commander soggettivo tra playgroup diversi.

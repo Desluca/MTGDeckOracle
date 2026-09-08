@@ -1,5 +1,6 @@
+import { normalizeLookupName } from "../card-data/index.js";
 import type { DeckStructureSummary } from "../analysis/index.js";
-import type { DeckCard, DeckList, FunctionalTag } from "../domain/index.js";
+import type { Color, DeckCard, DeckList, FunctionalTag } from "../domain/index.js";
 
 export type RecommendationPriority = "high" | "medium" | "low";
 
@@ -12,6 +13,56 @@ export interface DeckRecommendation {
   readonly suggestedCuts: readonly string[];
 }
 
+interface CardSuggestion {
+  readonly name: string;
+  readonly colorIdentity: readonly Color[];
+}
+
+const MANA_BASE_CARDS: readonly CardSuggestion[] = [
+  { name: "Command Tower", colorIdentity: [] },
+  { name: "Path of Ancestry", colorIdentity: [] },
+  { name: "Exotic Orchard", colorIdentity: [] },
+];
+
+const RAMP_CARDS: readonly CardSuggestion[] = [
+  { name: "Sol Ring", colorIdentity: [] },
+  { name: "Arcane Signet", colorIdentity: [] },
+  { name: "Fellwar Stone", colorIdentity: [] },
+  { name: "Nature's Lore", colorIdentity: ["G"] },
+  { name: "Three Visits", colorIdentity: ["G"] },
+  { name: "Dark Ritual", colorIdentity: ["B"] },
+];
+
+const CARD_ADVANTAGE_CARDS: readonly CardSuggestion[] = [
+  { name: "Brainstorm", colorIdentity: ["U"] },
+  { name: "Night's Whisper", colorIdentity: ["B"] },
+  { name: "Harmonize", colorIdentity: ["G"] },
+  { name: "Esper Sentinel", colorIdentity: ["W"] },
+  { name: "Guardian Project", colorIdentity: ["G"] },
+  { name: "Phyrexian Arena", colorIdentity: ["B"] },
+  { name: "Fact or Fiction", colorIdentity: ["U"] },
+];
+
+const INTERACTION_CARDS: readonly CardSuggestion[] = [
+  { name: "Swords to Plowshares", colorIdentity: ["W"] },
+  { name: "Path to Exile", colorIdentity: ["W"] },
+  { name: "Counterspell", colorIdentity: ["U"] },
+  { name: "Swan Song", colorIdentity: ["U"] },
+  { name: "Pongify", colorIdentity: ["U"] },
+  { name: "Beast Within", colorIdentity: ["G"] },
+  { name: "Nature's Claim", colorIdentity: ["G"] },
+  { name: "Chaos Warp", colorIdentity: ["R"] },
+  { name: "Toxic Deluge", colorIdentity: ["B"] },
+  { name: "Generous Gift", colorIdentity: ["W"] },
+  { name: "Assassin's Trophy", colorIdentity: ["B", "G"] },
+];
+
+const WIN_CONDITION_CARDS: readonly CardSuggestion[] = [
+  { name: "Walking Ballista", colorIdentity: [] },
+  { name: "Craterhoof Behemoth", colorIdentity: ["G"] },
+  { name: "Overwhelming Stampede", colorIdentity: ["G"] },
+];
+
 export function recommendDeckImprovements(deck: DeckList, structure: DeckStructureSummary): readonly DeckRecommendation[] {
   const deckSize = structure.composition.totalCards;
   const recommendations: DeckRecommendation[] = [];
@@ -22,7 +73,10 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
       category: "mana_base",
       message: "Aumentare il numero di terre o fonti mana stabili.",
       reason: `Il mazzo ha ${structure.composition.landCount} terre su ${deckSize} carte.`,
-      suggestedAdds: ["Command Tower", "Path of Ancestry", "terre doppie coerenti con la color identity"],
+      suggestedAdds: [
+        ...legalCardSuggestions(deck, MANA_BASE_CARDS, 2),
+        "terre doppie coerenti con la color identity",
+      ],
       suggestedCuts: findLowImpactCuts(deck, 3),
     });
   }
@@ -33,7 +87,7 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
       category: "ramp",
       message: "Aumentare ramp o fast mana.",
       reason: "Il mazzo rischia di partire lentamente o non lanciare in curva le magie piu' costose.",
-      suggestedAdds: ["Sol Ring", "Arcane Signet", "Fellwar Stone"],
+      suggestedAdds: legalCardSuggestions(deck, RAMP_CARDS, 3),
       suggestedCuts: findLowImpactCuts(deck, 3),
     });
   }
@@ -44,7 +98,10 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
       category: "card_advantage",
       message: "Aumentare draw, selezione o fonti di vantaggio carte.",
       reason: "Il mazzo potrebbe finire le risorse o trovare con fatica i pezzi chiave.",
-      suggestedAdds: ["generatore di card advantage coerente col comandante", "cantrip efficienti", "draw engine ripetibile"],
+      suggestedAdds: [
+        ...legalCardSuggestions(deck, CARD_ADVANTAGE_CARDS, 2),
+        "draw engine ripetibile coerente col comandante",
+      ],
       suggestedCuts: findLowImpactCuts(deck, 2),
     });
   }
@@ -55,7 +112,10 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
       category: "interaction",
       message: "Aumentare interaction.",
       reason: "Il mazzo ha poche risposte a minacce, combo o permanenti problematici.",
-      suggestedAdds: ["Swords to Plowshares", "Counterspell", "removal flessibile nei colori del mazzo"],
+      suggestedAdds: [
+        ...legalCardSuggestions(deck, INTERACTION_CARDS, 2),
+        "removal flessibile nei colori del mazzo",
+      ],
       suggestedCuts: findLowImpactCuts(deck, 2),
     });
   }
@@ -66,7 +126,11 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
       category: "win_conditions",
       message: "Chiarire le win condition.",
       reason: "Il mazzo sembra avere pochi modi espliciti per chiudere la partita.",
-      suggestedAdds: ["payoff principale del tema", "combo payoff se coerente", "finisher resiliente"],
+      suggestedAdds: [
+        ...legalCardSuggestions(deck, WIN_CONDITION_CARDS, 1),
+        "payoff principale del tema",
+        "finisher resiliente",
+      ],
       suggestedCuts: findLowImpactCuts(deck, 2),
     });
   }
@@ -83,6 +147,25 @@ export function recommendDeckImprovements(deck: DeckList, structure: DeckStructu
   }
 
   return recommendations;
+}
+
+export function isLegalSuggestionForIdentity(
+  colorIdentity: readonly Color[],
+  commanderColorIdentity: readonly Color[],
+): boolean {
+  return colorIdentity.every((color) => commanderColorIdentity.includes(color));
+}
+
+function legalCardSuggestions(deck: DeckList, cards: readonly CardSuggestion[], limit: number): readonly string[] {
+  const presentNames = new Set(
+    commanderDeckCards(deck).map((deckCard) => deckCard.card.identity.normalizedName),
+  );
+
+  return cards
+    .filter((card) => isLegalSuggestionForIdentity(card.colorIdentity, deck.commander.colorIdentity))
+    .filter((card) => !presentNames.has(normalizeLookupName(card.name)))
+    .slice(0, limit)
+    .map((card) => card.name);
 }
 
 function landRatio(structure: DeckStructureSummary): number {

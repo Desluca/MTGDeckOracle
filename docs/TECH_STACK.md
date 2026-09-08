@@ -158,6 +158,12 @@ tests/
 ```
 
 La CLI `npm run analyze` orchestra `analyzeCommanderDeck`.
+I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
+`recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
+`--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
+`--notes` / `--score-notes` passa testo extra a `scoreNotes` nella pipeline.
+I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
+`recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
 `--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
 `--notes` / `--score-notes` passa testo extra a `scoreNotes` nella pipeline.
 Il seed alimenta anche i lookup per carta quando la cache disco e' vuota, senza bloccare le query live per carte sconosciute.
@@ -171,9 +177,9 @@ CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm t
 
 ## Prossimo Step Tecnico
 
-Dopo seed Spellbook allargato e liste reali per stax, voltron, tokens, spellslinger e precon-modded:
+Dopo path di scoring unificato e consigli filtrati sul colore:
 
-1. altre liste competitive e recommendation filtrate sul colore;
+1. altre liste competitive;
 2. UI web del report mazzo solo dopo il nucleo di scoring.
 
 ## Deploy Online

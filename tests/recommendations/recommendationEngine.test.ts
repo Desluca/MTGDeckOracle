@@ -32,6 +32,50 @@ describe("recommendDeckImprovements", () => {
     expect(recommendations.find((recommendation) => recommendation.category === "ramp")?.suggestedAdds).toContain("Arcane Signet");
   });
 
+  it("does not suggest interaction outside the commander's color identity", () => {
+    const deck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Light-Paws, Emperor's Voice",
+          colorIdentity: ["W"],
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Fox Advisor",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Plains", types: ["land"], typeLine: "Basic Land — Plains", colorIdentity: ["W"] }), 37),
+        mainboardCard(createTestCard({ name: "Ramp", functionalTags: ["ramp"] }), 10),
+        mainboardCard(createTestCard({ name: "Draw", functionalTags: ["card_draw"] }), 10),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 42),
+      ],
+    });
+
+    const interaction = recommendDeckImprovements(deck, analyzeDeckStructure(deck)).find(
+      (recommendation) => recommendation.category === "interaction",
+    );
+
+    expect(interaction?.suggestedAdds).toEqual(expect.arrayContaining(["Swords to Plowshares"]));
+    expect(interaction?.suggestedAdds).not.toContain("Counterspell");
+    expect(interaction?.suggestedAdds).not.toContain("Chaos Warp");
+  });
+
+  it("skips ramp staples already in the list", () => {
+    const deck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Plains" }), 37),
+        mainboardCard(createTestCard({ name: "Sol Ring", functionalTags: ["fast_mana"] })),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 4 }), 61),
+      ],
+    });
+
+    const ramp = recommendDeckImprovements(deck, analyzeDeckStructure(deck)).find(
+      (recommendation) => recommendation.category === "ramp",
+    );
+
+    expect(ramp?.suggestedAdds).not.toContain("Sol Ring");
+    expect(ramp?.suggestedAdds).toContain("Arcane Signet");
+  });
+
   it("recommends interaction when answers are missing", () => {
     const deck = createResolvedTestDeck({
       mainboard: [

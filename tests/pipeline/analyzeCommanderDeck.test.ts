@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { InMemoryCardDataSource } from "../../src/card-data/index.js";
 import { CommanderSpellbookComboDataProvider, FileComboCache, createComboSeedCache } from "../../src/combo/index.js";
 import { analyzeCommanderDeck } from "../../src/pipeline/index.js";
+import { scoreCommanderDeck } from "../../src/scoring/index.js";
+import { scoringBenchmarks } from "../fixtures/benchmarks/benchmarkDecks.js";
 import { createCardMap } from "../utils/cardFactory.js";
 import { stapleCards } from "../fixtures/cards/stapleCards.js";
 
@@ -38,7 +40,6 @@ describe("analyzeCommanderDeck", () => {
       return;
     }
 
-    // Combo-piece retagging can lift this one point above the scoring-only Kinnan benchmark.
     expect(result.report.score.finalScore).toBeGreaterThanOrEqual(86);
     expect(result.report.score.finalScore).toBeLessThanOrEqual(93);
     expect(result.report.score.commanderBracket).toBeGreaterThanOrEqual(4);
@@ -47,6 +48,17 @@ describe("analyzeCommanderDeck", () => {
     );
     expect(fetchFn).not.toHaveBeenCalled();
     expect(result.report.explanation.scoreNotes).toContain("High-power del martedi, non cEDH.");
+
+    const fixture = scoringBenchmarks.find((benchmark) => benchmark.id === "real_kinnan_high_power");
+    expect(fixture).toBeDefined();
+    const fixtureScore = scoreCommanderDeck({
+      deck: fixture!.deck,
+      legality: fixture!.legality,
+      ...(fixture!.comboEvaluations ? { comboEvaluations: fixture!.comboEvaluations } : {}),
+      ...(fixture!.detectedCombos ? { detectedCombos: fixture!.detectedCombos } : {}),
+    });
+    expect(result.report.score.finalScore).toBe(fixtureScore.finalScore);
+    expect(result.report.score.commanderBracket).toBe(fixtureScore.commanderBracket);
   });
 
   it("scores a real Kess list from the expanded seed catalog without calling Spellbook", async () => {

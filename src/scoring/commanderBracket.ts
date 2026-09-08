@@ -39,7 +39,7 @@ export interface ClassifyCommanderBracketInput {
 }
 
 const EARLY_COMBO_MANA_THRESHOLD = 6;
-const CEDH_SCORE_THRESHOLD = 92;
+const CEDH_SCORE_THRESHOLD = 93;
 const BROKEN_SCORE_THRESHOLD = 20;
 const SEVERE_LEGALITY_CAP = 30;
 

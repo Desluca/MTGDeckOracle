@@ -376,7 +376,7 @@ Il voto 0-100 e il bracket ufficiale sono due output distinti.
 - Il voto misura quanto il mazzo funziona in partita.
 - Il bracket segue le regole Wizards di costruzione: Game Changers, combo infinite da due carte, extra turn, mass land denial.
 - Un Core (bracket 2) molto solido puo' arrivare a 75. Un Upgraded (bracket 3) costruito male puo' restare a 60.
-- Solo Optimized vs cEDH (4 vs 5) usa ancora il voto, perche' le regole di costruzione non li separano: da 92 in su, se il minimo da costruzione e' 4, il bracket diventa 5.
+- Solo Optimized vs cEDH (4 vs 5) usa ancora il voto, perche' le regole di costruzione non li separano: da 93 in su, se il minimo da costruzione e' 4, il bracket diventa 5.
 
 `isGameChanger` arriva da Scryfall; per le fixture c'e' anche un elenco di nomi noti. Il report include `score.bracket` (conteggio GC, segnali, minimo da costruzione) e `explanation.scoreNotes` (testo sul voto). Si puo' passare `scoreNotes` extra a `analyzeCommanderDeck` / `scoreCommanderDeck` per aggiungere una nota di calibrazione.
 
@@ -421,8 +421,7 @@ Ogni benchmark ha `expected_score_range` e `expected_bracket`. Mancano ancora sp
 
 Da coprire meglio:
 
-- altre liste competitive;
-- allineamento CLI vs fixture sul tag `combo_piece`.
+- altre liste competitive.
 
 ## Implementazione Attuale
 
