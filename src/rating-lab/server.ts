@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
-import { applyBestCardRatingSeed } from "./bestCardSeed.js";
+import { applyConfiguredRatingSeeds } from "./bestCardSeed.js";
 import { summarizeRatingActivity } from "./activitySummary.js";
 import { createCardMatch } from "./matchmaker.js";
 import { createRatingStore } from "./ratingStoreFactory.js";
@@ -12,7 +12,7 @@ const DEFAULT_PORT = 5174;
 
 const store = createRatingStore();
 const randomCardSource = new ScryfallRandomCardSource();
-const seedResult = await applyBestCardRatingSeed(store);
+const seedResults = await applyConfiguredRatingSeeds(store);
 
 const server = createServer(async (request, response) => {
   try {
@@ -27,8 +27,10 @@ const server = createServer(async (request, response) => {
 const port = Number.parseInt(process.env.PORT ?? String(DEFAULT_PORT), 10);
 server.listen(port, () => {
   console.log(`MTG Deck Oracle running at http://localhost:${port}`);
-  if (seedResult.cards > 0) {
-    console.log(`Best card rating seed ${seedResult.applied ? "applied" : "already applied"} for ${seedResult.cards} cards.`);
+  for (const seedResult of seedResults) {
+    if (seedResult.cards > 0) {
+      console.log(`${seedResult.seedName} rating seed ${seedResult.applied ? "applied" : "already applied"} for ${seedResult.cards} cards.`);
+    }
   }
 });
 

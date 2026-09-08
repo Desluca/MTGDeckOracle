@@ -95,7 +95,9 @@ http://localhost:5174
 Il rating lab usa Scryfall per pescare carte random legali in Commander e aggiorna i punteggi con Elo.
 In locale salva carte/confronti in `.cache/rating-lab-db.json`; in produzione usa PostgreSQL tramite `DATABASE_URL`.
 Ogni voto salva anche un visitor id anonimo e un timestamp, cosi' sara' possibile mostrare statistiche e grafici di attivita' nel tempo.
-All'avvio, se presente `bestcard.txt`, il server applica una seed list di rating: ogni carta valida e deduplicata nell'elenco viene portata a 1600.
+All'avvio il server puo' applicare seed list di rating:
+`bestcard.txt` porta le carte valide e deduplicate a 1600; `topCommanderStaples.txt` recupera la vecchia classifica con scala 2100-1600.
+I seed aggiornano solo carte senza voti registrati, cosi' non sovrascrivono rating gia' modificati dai match.
 
 La prima carta viene scelta al 50% tra carte con rating sopra 1500 e al 50% tra carte con rating 1500 o inferiore, quando il DB ha candidati disponibili.
 La seconda carta viene scelta al 30% random e al 70% tra carte con rating simile alla prima, includendo rating uguale e un range circa +/-10%.

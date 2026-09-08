@@ -73,7 +73,7 @@ export class PostgresRatingStore implements RatingStore {
       )
       values (
         $1, $2, $3, $4, $5, $6, $7,
-        coalesce((select rating from rating_card_seeds where normalized_name = $11 limit 1), $8),
+        coalesce((select max(rating) from rating_card_seeds where normalized_name = $11), $8),
         $9, $10
       )
       on conflict (id) do update set
@@ -120,15 +120,57 @@ export class PostgresRatingStore implements RatingStore {
   async findLeaderboardCards(page: number, pageSize: number): Promise<RatingLeaderboardPage> {
     await this.ensureSchema();
 
-    const totalResult = await this.pool.query<{ count: string }>("select count(*) from rating_cards");
+    const totalResult = await this.pool.query<{ count: string }>(`
+      with seed_cards as (
+        select normalized_name
+        from rating_card_seeds
+        group by normalized_name
+      )
+      select (
+        (select count(*) from rating_cards) +
+        (select count(*) from seed_cards where not exists (
+          select 1 from rating_cards where lower(rating_cards.name) = seed_cards.normalized_name
+        ))
+      ) as count
+    `);
     const totalCards = Number.parseInt(totalResult.rows[0]?.count ?? "0", 10);
     const totalPages = Math.max(1, Math.ceil(totalCards / pageSize));
     const normalizedPage = Math.min(Math.max(page, 1), totalPages);
     const offset = (normalizedPage - 1) * pageSize;
     const cardsResult = await this.pool.query<RatingCardRow>(
       `
+      with seed_cards as (
+        select
+          normalized_name,
+          (array_agg(name order by rating desc, name asc))[1] as name,
+          max(rating) as rating
+        from rating_card_seeds
+        group by normalized_name
+      ),
+      leaderboard_cards as (
+        select id, oracle_id, name, type_line, mana_value, image_url, scryfall_uri, rating, wins, losses
+        from rating_cards
+
+        union all
+
+        select
+          'seed:' || seed_cards.normalized_name as id,
+          null as oracle_id,
+          seed_cards.name,
+          'Seeded card' as type_line,
+          0 as mana_value,
+          null as image_url,
+          null as scryfall_uri,
+          seed_cards.rating,
+          0 as wins,
+          0 as losses
+        from seed_cards
+        where not exists (
+          select 1 from rating_cards where lower(rating_cards.name) = seed_cards.normalized_name
+        )
+      )
       select *
-      from rating_cards
+      from leaderboard_cards
       order by rating desc, wins desc, name asc
       limit $1 offset $2
       `,
@@ -258,12 +300,15 @@ export class PostgresRatingStore implements RatingStore {
       await client.query(
         `
         update rating_cards
-        set rating = rating_card_seeds.rating
-        from rating_card_seeds
-        where rating_card_seeds.seed_name = $1
-          and lower(rating_cards.name) = rating_card_seeds.normalized_name
+        set rating = seed_ratings.rating
+        from (
+          select normalized_name, max(rating) as rating
+          from rating_card_seeds
+          group by normalized_name
+        ) as seed_ratings
+        where lower(rating_cards.name) = seed_ratings.normalized_name
+          and rating_cards.wins + rating_cards.losses = 0
         `,
-        [seedName],
       );
 
       await client.query(

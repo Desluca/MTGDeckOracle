@@ -17,5 +17,6 @@ RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/database ./database
 COPY --from=build /app/bestcard.txt ./bestcard.txt
+COPY --from=build /app/topCommanderStaples.txt ./topCommanderStaples.txt
 EXPOSE 5174
 CMD ["npm", "start"]

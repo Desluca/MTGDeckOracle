@@ -55,7 +55,16 @@ export class FileRatingStore implements RatingStore {
   }
 
   async findLeaderboardCards(page: number, pageSize: number): Promise<RatingLeaderboardPage> {
-    const cards = Object.values((await this.readDatabase()).cards).sort(compareLeaderboardCards);
+    const database = await this.readDatabase();
+    const cardsByNormalizedName = new Map(Object.values(database.cards).map((card) => [normalizeSeedLookupName(card.name), card]));
+
+    for (const seed of Object.values(database.metadata?.seededCardRatings ?? {})) {
+      if (!cardsByNormalizedName.has(seed.normalizedName)) {
+        cardsByNormalizedName.set(seed.normalizedName, seedToLeaderboardCard(seed));
+      }
+    }
+
+    const cards = [...cardsByNormalizedName.values()].sort(compareLeaderboardCards);
     const totalCards = cards.length;
     const totalPages = Math.max(1, Math.ceil(totalCards / pageSize));
     const normalizedPage = Math.min(Math.max(page, 1), totalPages);
@@ -122,11 +131,11 @@ export class FileRatingStore implements RatingStore {
       return false;
     }
 
-    const seededCardRatings = Object.fromEntries(cards.map((card) => [card.normalizedName, card]));
+    const seededCardRatings = mergeSeededCardRatings(database.metadata?.seededCardRatings ?? {}, Object.fromEntries(cards.map((card) => [card.normalizedName, card])));
     const nextCards = Object.fromEntries(
       Object.entries(database.cards).map(([cardId, card]) => {
         const seededRating = seededCardRatings[normalizeSeedLookupName(card.name)]?.rating;
-        return [cardId, seededRating ? { ...card, rating: seededRating } : card];
+        return [cardId, seededRating && card.wins + card.losses === 0 ? { ...card, rating: seededRating } : card];
       }),
     );
 
@@ -174,6 +183,32 @@ function isMissingFileError(error: unknown): boolean {
 
 function normalizeSeedLookupName(name: string): string {
   return name.trim().toLowerCase();
+}
+
+function mergeSeededCardRatings(
+  existingSeeds: Record<string, RatingCardSeed>,
+  newSeeds: Record<string, RatingCardSeed>,
+): Record<string, RatingCardSeed> {
+  const mergedSeeds = { ...existingSeeds };
+
+  for (const [normalizedName, seed] of Object.entries(newSeeds)) {
+    const existingSeed = mergedSeeds[normalizedName];
+    mergedSeeds[normalizedName] = !existingSeed || seed.rating > existingSeed.rating ? seed : existingSeed;
+  }
+
+  return mergedSeeds;
+}
+
+function seedToLeaderboardCard(seed: RatingCardSeed): RatingCard {
+  return {
+    id: `seed:${seed.normalizedName}`,
+    name: seed.name,
+    typeLine: "Seeded card",
+    manaValue: 0,
+    rating: seed.rating,
+    wins: 0,
+    losses: 0,
+  };
 }
 
 function compareLeaderboardCards(left: RatingCard, right: RatingCard): number {

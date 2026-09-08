@@ -93,6 +93,46 @@ describe("RatingStore", () => {
     expect((await store.findCard("arcane-signet"))?.rating).toBe(1800);
   });
 
+  it("does not overwrite seeded cards that already have match results", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.upsertCard(card("sol-ring", "Sol Ring"));
+    await store.upsertCard(card("arcane-signet", "Arcane Signet"));
+    await store.recordVote("sol-ring", "arcane-signet", "random");
+    const votedRating = (await store.findCard("sol-ring"))?.rating;
+    await store.applyRatingSeed("topCommanderStaples", "v1", [
+      {
+        normalizedName: "sol ring",
+        name: "Sol Ring",
+        rating: 2100,
+      },
+    ]);
+
+    expect((await store.findCard("sol-ring"))?.rating).toBe(votedRating);
+  });
+
+  it("uses the highest seed rating for future cards", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.applyRatingSeed("bestcard", "v1", [
+      {
+        normalizedName: "sol ring",
+        name: "Sol Ring",
+        rating: 1600,
+      },
+    ]);
+    await store.applyRatingSeed("topCommanderStaples", "v1", [
+      {
+        normalizedName: "sol ring",
+        name: "Sol Ring",
+        rating: 2100,
+      },
+    ]);
+    await store.upsertCard(card("sol-ring", "Sol Ring"));
+
+    expect((await store.findCard("sol-ring"))?.rating).toBe(2100);
+  });
+
   it("does not apply the same seed version twice", async () => {
     const store = new RatingStore(join(await createTempDir(), "ratings.json"));
 
@@ -118,6 +158,26 @@ describe("RatingStore", () => {
     });
     expect(firstPage.cards.map((card) => card.id)).toEqual(["top", "middle"]);
     expect(secondPage.cards.map((card) => card.id)).toEqual(["bottom"]);
+  });
+
+  it("includes seed-only cards in the leaderboard", async () => {
+    const store = new RatingStore(join(await createTempDir(), "ratings.json"));
+
+    await store.applyRatingSeed("topCommanderStaples", "v1", [
+      {
+        normalizedName: "sol ring",
+        name: "Sol Ring",
+        rating: 2100,
+      },
+    ]);
+
+    const leaderboard = await store.findLeaderboardCards(1, 100);
+
+    expect(leaderboard.cards[0]).toMatchObject({
+      id: "seed:sol ring",
+      name: "Sol Ring",
+      rating: 2100,
+    });
   });
 });
 
