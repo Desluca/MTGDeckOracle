@@ -45,6 +45,10 @@ export function inferFunctionalTags(card: Card): readonly FunctionalTag[] {
     tags.add("recursion");
   }
 
+  if (oracleText.includes("graveyard")) {
+    tags.add("graveyard_synergy");
+  }
+
   if (oracleText.includes("exile target card from a graveyard") || oracleText.includes("exile all graveyards")) {
     tags.add("graveyard_hate");
   }

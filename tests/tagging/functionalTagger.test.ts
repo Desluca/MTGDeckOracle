@@ -57,6 +57,12 @@ describe("inferFunctionalTags", () => {
     expect(inferFunctionalTags(card)).toContain("protection");
   });
 
+  it("tags graveyard synergy", () => {
+    const card = createTestCard({ name: "Graveyard Engine", oracleText: "Whenever one or more creature cards leave your graveyard, draw a card." });
+
+    expect(inferFunctionalTags(card)).toContain("graveyard_synergy");
+  });
+
   it("keeps existing manual tags", () => {
     const card = createTestCard({ name: "Manual Combo Piece", functionalTags: ["combo_piece"] });
 

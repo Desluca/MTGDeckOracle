@@ -53,4 +53,33 @@ describe("evaluateCardContribution", () => {
     expect(contribution.baseValue).toBe(10);
     expect(contribution.contextualValue).toBeGreaterThan(1);
   });
+
+  it("lets a graveyard commander support a larger graveyard package", () => {
+    const graveyardCommanderDeck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Graveyard Commander",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Wizard",
+          functionalTags: ["graveyard_synergy"],
+          oracleText: "Whenever one or more cards leave your graveyard, draw a card.",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Graveyard Payoff", functionalTags: ["graveyard_synergy"], basePowerRating: 6 }), 10),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 89),
+      ],
+    });
+    const genericCommanderDeck = createResolvedTestDeck({
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Graveyard Payoff", functionalTags: ["graveyard_synergy"], basePowerRating: 6 }), 10),
+        mainboardCard(createTestCard({ name: "Filler", manaValue: 3 }), 89),
+      ],
+    });
+
+    const graveyardContribution = evaluateCardContribution(graveyardCommanderDeck.cards[1]!, graveyardCommanderDeck.cards);
+    const genericContribution = evaluateCardContribution(genericCommanderDeck.cards[1]!, genericCommanderDeck.cards);
+
+    expect(graveyardContribution.contextualValue).toBeGreaterThan(genericContribution.contextualValue);
+  });
 });

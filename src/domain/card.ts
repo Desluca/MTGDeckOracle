@@ -34,6 +34,7 @@ export type FunctionalTag =
   | "protection"
   | "recursion"
   | "graveyard_hate"
+  | "graveyard_synergy"
   | "stax"
   | "combo_piece"
   | "combo_payoff"

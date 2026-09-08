@@ -14,19 +14,21 @@ export interface CardContributionOptions {
 }
 
 interface RoleTarget {
+  readonly id: string;
   readonly tags: readonly FunctionalTag[];
   readonly idealPerHundred: number;
   readonly label: string;
 }
 
 const ROLE_TARGETS: readonly RoleTarget[] = [
-  { tags: ["ramp", "fast_mana"], idealPerHundred: 10, label: "ramp" },
-  { tags: ["card_draw", "card_selection"], idealPerHundred: 10, label: "card advantage" },
-  { tags: ["spot_removal", "board_wipe", "counterspell", "graveyard_hate"], idealPerHundred: 9, label: "interaction" },
-  { tags: ["protection", "recursion"], idealPerHundred: 6, label: "resilience" },
-  { tags: ["win_condition", "combo_payoff"], idealPerHundred: 4, label: "win condition" },
-  { tags: ["tutor"], idealPerHundred: 5, label: "tutor" },
-  { tags: ["land", "mana_fixing"], idealPerHundred: 37, label: "mana base" },
+  { id: "ramp", tags: ["ramp", "fast_mana"], idealPerHundred: 10, label: "ramp" },
+  { id: "card_advantage", tags: ["card_draw", "card_selection"], idealPerHundred: 10, label: "card advantage" },
+  { id: "interaction", tags: ["spot_removal", "board_wipe", "counterspell", "graveyard_hate"], idealPerHundred: 9, label: "interaction" },
+  { id: "resilience", tags: ["protection", "recursion"], idealPerHundred: 6, label: "resilience" },
+  { id: "graveyard", tags: ["graveyard_synergy", "recursion", "graveyard_hate"], idealPerHundred: 6, label: "graveyard package" },
+  { id: "win_condition", tags: ["win_condition", "combo_payoff"], idealPerHundred: 4, label: "win condition" },
+  { id: "tutor", tags: ["tutor"], idealPerHundred: 5, label: "tutor" },
+  { id: "mana_base", tags: ["land", "mana_fixing"], idealPerHundred: 37, label: "mana base" },
 ];
 
 export function evaluateDeckCardContributions(deck: DeckList, options: CardContributionOptions = {}): readonly CardContribution[] {
@@ -82,6 +84,7 @@ function getBasePowerRating(deckCard: DeckCard, ratingProvider: CardRatingProvid
 function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deckSize: number): { readonly multiplier: number; readonly reason: string } {
   const roleCount = countTagged(deckCards, target.tags);
   const normalizedCount = deckSize > 0 ? (roleCount / deckSize) * 100 : 0;
+  const adjustedIdealPerHundred = target.idealPerHundred * commanderTargetMultiplier(target, deckCards);
 
   if (normalizedCount === 0) {
     return {
@@ -90,14 +93,14 @@ function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deck
     };
   }
 
-  if (normalizedCount < target.idealPerHundred * 0.7) {
+  if (normalizedCount < adjustedIdealPerHundred * 0.7) {
     return {
       multiplier: 1.25,
       reason: `${target.label} sotto soglia: valore marginale aumentato.`,
     };
   }
 
-  if (normalizedCount <= target.idealPerHundred * 1.2) {
+  if (normalizedCount <= adjustedIdealPerHundred * 1.2) {
     return {
       multiplier: 1,
       reason: `${target.label} in range: valore marginale neutro.`,
@@ -105,9 +108,26 @@ function roleMultiplier(target: RoleTarget, deckCards: readonly DeckCard[], deck
   }
 
   return {
-    multiplier: Math.max(0.45, target.idealPerHundred / normalizedCount),
+    multiplier: Math.max(0.45, adjustedIdealPerHundred / normalizedCount),
     reason: `${target.label} gia' abbondante: diminishing returns applicato.`,
   };
+}
+
+function commanderTargetMultiplier(target: RoleTarget, deckCards: readonly DeckCard[]): number {
+  if (target.id === "graveyard" && commanderSupportsGraveyard(deckCards)) {
+    return 2;
+  }
+
+  return 1;
+}
+
+function commanderSupportsGraveyard(deckCards: readonly DeckCard[]): boolean {
+  return deckCards
+    .filter((deckCard) => deckCard.section === "commander")
+    .some((deckCard) =>
+      deckCard.card.evaluation.functionalTags.some((tag) => tag === "graveyard_synergy" || tag === "recursion") ||
+      deckCard.card.rules.oracleText.toLowerCase().includes("graveyard"),
+    );
 }
 
 function commanderDeckCards(deck: DeckList): readonly DeckCard[] {
