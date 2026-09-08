@@ -14,7 +14,7 @@ import { loadCardRatingProviderFromRatingStore } from "../ratings/index.js";
 import { recommendDeckImprovements } from "../recommendations/index.js";
 import { renderReport } from "../report/index.js";
 import { scoreCommanderDeck } from "../scoring/index.js";
-import { FileCardTagProvider, tagDeckCards, tagDeckCardsWithProvider } from "../tagging/index.js";
+import { createComboTagsByName, FileCardTagProvider, tagDeckCards, tagDeckCardsWithProvider } from "../tagging/index.js";
 import { validateCommanderDeck } from "../validation/index.js";
 
 async function main(): Promise<void> {
@@ -47,10 +47,11 @@ async function main(): Promise<void> {
   }
 
   const tagProvider = await loadOptionalCardTagProvider();
-  const taggedDeck = tagProvider ? await tagDeckCardsWithProvider(resolution.deck, tagProvider) : tagDeckCards(resolution.deck);
+  const baseTaggedDeck = tagProvider ? await tagDeckCardsWithProvider(resolution.deck, tagProvider) : tagDeckCards(resolution.deck);
+  const detectedCombos = await detectDeckCombos(baseTaggedDeck, new CommanderSpellbookComboDataProvider());
+  const taggedDeck = tagDeckCards(baseTaggedDeck, createComboTagsByName(detectedCombos));
   const structure = analyzeDeckStructure(taggedDeck);
   const consistency = analyzeConsistency(taggedDeck);
-  const detectedCombos = await detectDeckCombos(taggedDeck, new CommanderSpellbookComboDataProvider());
   const comboEvaluations = evaluateDetectedCombos(detectedCombos, taggedDeck);
   const ratingProvider = await loadOptionalRatingProvider(options.cardRatings);
   const score = scoreCommanderDeck({

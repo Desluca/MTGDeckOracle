@@ -79,6 +79,7 @@ npm run analyze -- path/to/decklist.txt --format html
 ```
 
 La CLI usa Scryfall per i dati carta, una cache locale in `.cache/` e Commander Spellbook per cercare combo note.
+Le combo rilevate aggiungono anche tag `combo_piece` alle carte coinvolte, con evidence da `commander_spellbook`.
 Di default prova anche a caricare i rating raccolti dal Rating Lab e usarli nel componente `card_quality`.
 Se presente, legge anche `.cache/external-card-tags.json` per arricchire i tag funzionali con dati esterni tipo hub Archidekt/Moxfield.
 

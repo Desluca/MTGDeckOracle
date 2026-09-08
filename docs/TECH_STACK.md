@@ -161,3 +161,4 @@ Il tagging resta deterministico con inferenza dal testo Oracle, ma puo' essere a
 La CLI carica automaticamente `.cache/external-card-tags.json` se il file esiste.
 Questo file e' pensato come cache/import per segnali raccolti da hub esterni come Archidekt o Moxfield, normalizzando label comuni come `Card Draw`, `Removal`, `Graveyard` o `Board Wipes` nei tag interni.
 Il provider puo' anche conservare evidence strutturate con `source` e `confidence`, cosi' una futura pipeline sulle circa 30k carte potra' pesare diversamente tag da Oracle text, hub community, Commander Spellbook e override manuali.
+Il detector combo alimenta lo stesso sistema: dopo avere interrogato Commander Spellbook, le carte presenti in combo rilevate vengono ritaggate come `combo_piece` prima dello scoring finale.
