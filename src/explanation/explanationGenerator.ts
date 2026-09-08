@@ -1,6 +1,7 @@
 import type { DeckStructureSummary } from "../analysis/index.js";
 import type { ConsistencyAnalysis } from "../consistency/index.js";
-import type { ComboEvaluation, CommanderLegalityReport, ConsistencySignal, ScoreBreakdown } from "../domain/index.js";
+import type { ComboEvaluation, CommanderLegalityReport, ConsistencySignal, DeckList, ScoreBreakdown } from "../domain/index.js";
+import { inferCommanderThemes, type CommanderTheme } from "../scoring/commanderThemes.js";
 
 export interface DeckScoreExplanation {
   readonly summary: string;
@@ -17,6 +18,7 @@ export interface GenerateExplanationInput {
   readonly consistency: ConsistencyAnalysis;
   readonly comboEvaluations?: readonly ComboEvaluation[];
   readonly scoreNotes?: string;
+  readonly deck?: DeckList;
 }
 
 const SIGNAL_LABELS: Readonly<Record<string, string>> = {
@@ -37,10 +39,29 @@ const SIGNAL_RECOMMENDATIONS: Readonly<Record<string, string>> = {
   win_condition_access: "Aggiungere win condition, combo payoff o tutor che le trovano.",
 };
 
+const THEME_LABELS: Readonly<Record<CommanderTheme, string>> = {
+  graveyard: "graveyard",
+  artifacts: "artifact",
+  tokens: "token",
+  spellslinger: "spellslinger",
+  lifegain: "lifegain",
+  aristocrats: "aristocrats",
+  counters: "counters",
+  enchantments: "enchantress",
+  equipment: "voltron",
+  tribal: "tribal",
+  landfall: "landfall",
+  blink: "blink",
+  control: "control",
+  reanimator: "reanimator",
+};
+
 const HIGH_SIGNAL_THRESHOLD = 0.75;
 const LOW_SIGNAL_THRESHOLD = 0.4;
-const MAX_SUMMARY_POINTS = 4;
+const MAX_SUMMARY_POINTS = 5;
 const MAX_LIST_ITEMS = 4;
+const LOW_LAND_RATIO = 0.32;
+const HIGH_CURVE_AVERAGE = 3.7;
 
 export function generateDeckScoreExplanation(input: GenerateExplanationInput): DeckScoreExplanation {
   const strengths = findStrengths(input);
@@ -72,8 +93,13 @@ function createSummary(input: GenerateExplanationInput): string {
 
 function collectSummaryPoints(input: GenerateExplanationInput): readonly string[] {
   const points: string[] = [];
+  const themeLabels = commanderThemeLabels(input);
   const highSignals = rankedSignals(input.consistency.signals, "desc").filter((signal) => signal.probability >= HIGH_SIGNAL_THRESHOLD).slice(0, 2);
   const lowSignals = rankedSignals(input.consistency.signals, "asc").filter((signal) => signal.probability <= LOW_SIGNAL_THRESHOLD).slice(0, 2);
+
+  if (themeLabels.length > 0) {
+    points.push(`Il piano ${joinThemeLabels(themeLabels)} con il comandante e' chiaro.`);
+  }
 
   if (highSignals.length > 0) {
     points.push(`Accesso solido a ${joinLabels(highSignals)}.`);
@@ -96,11 +122,22 @@ function collectSummaryPoints(input: GenerateExplanationInput): readonly string[
     points.push(`Combo rilevante con impatto ${bestCombo.impactScore}/100.`);
   }
 
+  if (hasThinManaBase(input)) {
+    points.push("La mana base ha poche terre rispetto alla dimensione del mazzo.");
+  } else if (input.structure.composition.averageManaValue >= HIGH_CURVE_AVERAGE) {
+    points.push("La curva e' alta.");
+  }
+
   return points.slice(0, MAX_SUMMARY_POINTS);
 }
 
 function findStrengths(input: GenerateExplanationInput): readonly string[] {
   const strengths: string[] = [];
+  const themeLabels = commanderThemeLabels(input);
+  if (themeLabels.length > 0) {
+    strengths.push(`Piano ${joinThemeLabels(themeLabels)}: il comandante supporta il pacchetto.`);
+  }
+
   const topComponents = [...input.score.components].sort((left, right) => right.rawScore - left.rawScore).slice(0, 3);
 
   for (const component of topComponents) {
@@ -132,6 +169,10 @@ function findWeaknesses(input: GenerateExplanationInput): readonly string[] {
 
   if (input.consistency.sizeMultiplier < 0.8) {
     weaknesses.push(`Consistenza ridotta dalla dimensione del mazzo: moltiplicatore ${input.consistency.sizeMultiplier.toFixed(2)}.`);
+  }
+
+  if (hasThinManaBase(input)) {
+    weaknesses.push("Mana base: poche terre rispetto alla dimensione del mazzo.");
   }
 
   for (const component of input.score.components) {
@@ -168,11 +209,31 @@ function findRecommendations(input: GenerateExplanationInput): readonly string[]
     recommendations.push(`Migliorare ${component.label.toLowerCase()} per aumentare il punteggio complessivo.`);
   }
 
-  if (input.structure.composition.landCount < Math.round(input.structure.composition.totalCards * 0.32)) {
+  if (hasThinManaBase(input)) {
     recommendations.push("Controllare il numero di terre: il mazzo sembra sotto la soglia consigliata.");
   }
 
   return unique(recommendations).slice(0, 5);
+}
+
+function commanderThemeLabels(input: GenerateExplanationInput): readonly string[] {
+  if (!input.deck) {
+    return [];
+  }
+
+  return inferCommanderThemes(input.deck.cards).map((theme) => THEME_LABELS[theme]);
+}
+
+function joinThemeLabels(labels: readonly string[]): string {
+  if (labels.length === 1) {
+    return labels[0] ?? "";
+  }
+
+  return `${labels.slice(0, -1).join(", ")} e ${labels[labels.length - 1]}`;
+}
+
+function hasThinManaBase(input: GenerateExplanationInput): boolean {
+  return input.structure.composition.landCount < Math.round(input.structure.composition.totalCards * LOW_LAND_RATIO);
 }
 
 function rankedSignals(signals: readonly ConsistencySignal[], direction: "asc" | "desc"): ConsistencySignal[] {

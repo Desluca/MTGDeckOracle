@@ -77,6 +77,7 @@ export async function analyzeCommanderDeck(input: AnalyzeCommanderDeckInput): Pr
     structure,
     consistency,
     comboEvaluations,
+    deck: taggedDeck,
     ...(input.scoreNotes ? { scoreNotes: score.explanation } : {}),
   });
   const detailedRecommendations = recommendDeckImprovements(taggedDeck, structure);

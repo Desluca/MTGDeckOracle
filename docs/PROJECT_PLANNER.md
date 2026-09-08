@@ -239,9 +239,9 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 - `kinnan-illegal-size.deck` (4);
 - `pantlaza-illegal-color.deck` (2).
 
-I range stanno in `benchmarkDecks.ts` (`expectedScoreRange`, `expectedBracket`). Non ci sono ancora file `expected_main_findings` per lista.
+I range e i `expectedMainFindings` stanno in `benchmarkDecks.ts`. Il report deve citare il piano del comandante, non solo il voto.
 
-Prossimo passo calibrazione: spiegazioni manuali per lista (`expected_main_findings`).
+Prossimo passo calibrazione: UI web del report mazzo dopo il nucleo di scoring.
 
 ## Decisioni Prese
 

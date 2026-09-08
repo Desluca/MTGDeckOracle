@@ -46,6 +46,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     legality: legalReport(),
     expectedScoreRange: { min: 62, max: 82 },
     expectedBracket: 2,
+    expectedMainFindings: ["piano graveyard", "Core"],
   },
   {
     id: "high_power",
@@ -69,6 +70,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     detectedCombos: [twoCardWinCombo("high-power-combo", 4)],
     expectedScoreRange: { min: 78, max: 91 },
     expectedBracket: 4,
+    expectedMainFindings: ["Combo rilevante", "Optimized"],
   },
   {
     id: "cedh_like",
@@ -92,6 +94,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     detectedCombos: [twoCardWinCombo("cedh-combo", 3)],
     expectedScoreRange: { min: 86, max: 100 },
     expectedBracket: 5,
+    expectedMainFindings: ["cEDH", "Combo rilevante"],
   },
   {
     id: "illegal_200_goodstuff",
@@ -123,6 +126,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     },
     expectedScoreRange: { min: 0, max: 25 },
     expectedBracket: 1,
+    expectedMainFindings: ["problemi di legalita'", "libreria da 199"],
   },
   {
     id: "whtz_200_legal",
@@ -146,6 +150,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     comboEvaluations: [comboEvaluation("battle-of-wits-line", 82)],
     expectedScoreRange: { min: 55, max: 82 },
     expectedBracket: 2,
+    expectedMainFindings: ["libreria da 199", "Combo rilevante"],
   },
   {
     id: "combo_fragments",
@@ -187,6 +192,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     legality: legalReport(),
     expectedScoreRange: { min: 28, max: 55 },
     expectedBracket: 2,
+    expectedMainFindings: ["poche terre"],
   },
   {
     id: "illegal_color_identity",
@@ -218,6 +224,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     },
     expectedScoreRange: { min: 0, max: 40 },
     expectedBracket: 2,
+    expectedMainFindings: ["problemi di legalita'"],
   },
   loadRealDeckBenchmark(
     "real_pantlaza_precon",
@@ -225,6 +232,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Pantlaza dinosaur list tagged from oracle text.",
     { min: 70, max: 85 },
     2,
+    ["piano tribal", "Core"],
   ),
   loadRealDeckBenchmark(
     "real_muldrotha_casual",
@@ -232,6 +240,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Muldrotha graveyard list tagged from oracle text.",
     { min: 78, max: 90 },
     3,
+    ["piano graveyard", "Upgraded"],
   ),
   loadRealDeckBenchmark(
     "real_kinnan_high_power",
@@ -239,6 +248,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Kinnan high-power list with a compact Spellbook combo.",
     { min: 86, max: 93 },
     4,
+    ["Combo rilevante", "Optimized", "poche terre"],
   ),
   loadRealDeckBenchmark(
     "real_thrasios_cedh",
@@ -246,6 +256,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Thrasios/Tymna cEDH list with Thoracle lines.",
     { min: 91, max: 98 },
     5,
+    ["cEDH", "Combo rilevante"],
   ),
   loadRealDeckBenchmark(
     "real_gishath_bad_mana",
@@ -253,6 +264,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Gishath list with too few lands and a high curve.",
     { min: 70, max: 82 },
     2,
+    ["piano tribal", "poche terre", "Core"],
   ),
   loadRealDeckBenchmark(
     "real_whtz_120",
@@ -260,6 +272,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Legal Whtz 120-card list: no legality cap, consistency still suffers.",
     { min: 45, max: 62 },
     4,
+    ["libreria da 119", "Optimized", "Combo rilevante"],
   ),
   loadRealDeckBenchmark(
     "real_kinnan_illegal_size",
@@ -267,6 +280,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Kinnan list illegally at 101 cards.",
     { min: 0, max: 70 },
     4,
+    ["problemi di legalita'", "Optimized"],
   ),
   loadRealDeckBenchmark(
     "real_pantlaza_illegal_color",
@@ -274,6 +288,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Pantlaza list with Counterspell outside Naya identity.",
     { min: 0, max: 40 },
     2,
+    ["problemi di legalita'", "piano tribal"],
   ),
   loadRealDeckBenchmark(
     "real_pantlaza_precon_modded",
@@ -281,6 +296,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Pantlaza precon with efficient ramp and draw swaps, still no Game Changers.",
     { min: 72, max: 88 },
     2,
+    ["piano tribal", "Core"],
   ),
   loadRealDeckBenchmark(
     "real_kess_spellslinger",
@@ -288,6 +304,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Kess spellslinger list with Breach and Dualcaster lines.",
     { min: 80, max: 91 },
     4,
+    ["spellslinger", "Combo rilevante", "Optimized"],
   ),
   loadRealDeckBenchmark(
     "real_grand_arbiter_stax",
@@ -295,6 +312,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Grand Arbiter stax list with a few Game Changers and no early two-card infinite.",
     { min: 74, max: 88 },
     3,
+    ["Upgraded", "Debole su win condition"],
   ),
   loadRealDeckBenchmark(
     "real_light_paws_voltron",
@@ -302,6 +320,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Light-Paws aura voltron list with no Game Changers.",
     { min: 70, max: 86 },
     2,
+    ["Core", "Debole su win condition"],
   ),
   loadRealDeckBenchmark(
     "real_rhys_tokens",
@@ -309,6 +328,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Rhys token list with doublers and a combat payoff.",
     { min: 74, max: 88 },
     2,
+    ["piano token", "tribal", "Core"],
   ),
   loadRealDeckBenchmark(
     "real_urza_artifacts",
@@ -316,6 +336,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Urza artifact list with Isochron and a dense rock package.",
     { min: 86, max: 93 },
     4,
+    ["piano artifact", "Combo rilevante", "Optimized"],
   ),
   loadRealDeckBenchmark(
     "real_sythis_enchantress",
@@ -323,6 +344,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Sythis enchantress list with no Game Changers.",
     { min: 70, max: 86 },
     2,
+    ["enchantress", "Core"],
   ),
   loadRealDeckBenchmark(
     "real_teysa_aristocrats",
@@ -330,6 +352,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Teysa aristocrats list with a few Game Changers and a drain package.",
     { min: 70, max: 86 },
     3,
+    ["aristocrats", "Upgraded"],
   ),
   loadRealDeckBenchmark(
     "real_aesi_landfall",
@@ -337,6 +360,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Aesi landfall list with extra land drops and landfall payoffs.",
     { min: 70, max: 86 },
     3,
+    ["piano landfall", "Upgraded"],
   ),
   loadRealDeckBenchmark(
     "real_brago_blink",
@@ -344,6 +368,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Brago blink list with ETB value and flicker payoffs.",
     { min: 70, max: 86 },
     3,
+    ["piano blink", "Upgraded"],
   ),
   loadRealDeckBenchmark(
     "real_teferi_control",
@@ -351,6 +376,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Teferi control list with counters, Game Changers, and Isochron.",
     { min: 80, max: 92 },
     4,
+    ["piano control", "Combo rilevante", "Optimized"],
   ),
   loadRealDeckBenchmark(
     "real_meren_reanimator",
@@ -358,6 +384,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Meren reanimator list with mill, reanimate spells, and two Game Changers.",
     { min: 76, max: 90 },
     3,
+    ["reanimator", "graveyard", "Upgraded"],
   ),
   loadRealDeckBenchmark(
     "real_krenko_goblins",
@@ -365,6 +392,7 @@ export const scoringBenchmarks: readonly ScoringBenchmark[] = [
     "Real Krenko goblin tribal list with token payoffs and a real mana base.",
     { min: 66, max: 82 },
     3,
+    ["piano token", "tribal", "Upgraded"],
   ),
 ];
 

@@ -12,10 +12,10 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
 | M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
 | M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
-| M6 Calibrazione | In corso: profili sintetici + 21 liste reali; bracket da costruzione, non da fascia di voto |
+| M6 Calibrazione | In corso: 21 liste reali, `expectedMainFindings` sul report; bracket da costruzione |
 | M7 Miglioramenti avanzati | Parziale: recommendation strutturali filtrate sul colore; URL, budget, versioning no |
 
-Prossimi slice: spiegazioni manuali per lista. UI report solo dopo.
+Prossimi slice: UI report dopo il nucleo di scoring.
 
 ## Milestone 0 - Fondamenta
 
@@ -149,7 +149,7 @@ Stato: in corso. Si lavora su questa milestone prima di M5.
 
 Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 21 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, Urza artifacts, Sythis enchantress, Teysa aristocrats, Aesi landfall, Brago blink, Teferi control, Meren reanimator, Krenko goblins, due illegalita').
 
-Aperto: spiegazioni manuali per lista (`expected_main_findings`). Il bracket non e' piu' una fascia del voto.
+Aperto: UI del report mazzo. Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 

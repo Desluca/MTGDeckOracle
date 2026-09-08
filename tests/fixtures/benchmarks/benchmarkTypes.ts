@@ -14,4 +14,5 @@ export interface ScoringBenchmark {
   readonly detectedCombos?: readonly DetectedCombo[];
   readonly expectedScoreRange: ScoreRange;
   readonly expectedBracket?: CommanderBracket;
+  readonly expectedMainFindings?: readonly string[];
 }

@@ -396,13 +396,14 @@ Penalita':
 
 ## Spiegazione del Voto
 
-Ogni report deve generare una spiegazione in linguaggio naturale:
+Il report deve dire quale piano il comandante supporta (temi inferiti), se la mana base e' sottile, se la curva e' alta, e se c'e' una combo rilevante. Il voto e il bracket restano frasi distinte.
+
+Ogni report deve anche coprire:
 
 - perche' il voto e' alto o basso;
 - quali sottopunteggi pesano di piu';
 - quali errori bloccano il voto;
-- quali modifiche darebbero il miglior aumento;
-- quanto il mazzo sembra coerente con il comandante.
+- quali modifiche darebbero il miglior aumento.
 
 Esempio sintetico:
 
@@ -417,11 +418,7 @@ Suite automatica:
 - profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts`;
 - liste reali in `tests/fixtures/decks/real/` (21 liste: precon, precon-modded, casual, high-power, cEDH, stax, voltron, tokens, spellslinger, artifacts, enchantress, aristocrats, landfall, blink, control, reanimator, tribal, mana pessima, Whtz, illegalita').
 
-Ogni benchmark ha `expected_score_range` e `expected_bracket`. Mancano ancora spiegazioni manuali per lista (`expected_main_findings`).
-
-Da coprire meglio:
-
-- spiegazioni manuali per lista.
+Ogni benchmark ha `expectedScoreRange`, `expectedBracket` e, dove il racconto e' stabile, `expectedMainFindings` (frasi che il report deve contenere: piano del comandante, legalita', terre, combo, bracket).
 
 ## Implementazione Attuale
 

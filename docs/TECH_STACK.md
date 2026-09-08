@@ -179,10 +179,9 @@ CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm t
 
 ## Prossimo Step Tecnico
 
-Dopo liste reanimator e tribal:
+Dopo spiegazioni calibrate sui benchmark (`expectedMainFindings`):
 
-1. spiegazioni manuali per lista (`expected_main_findings`);
-2. UI web del report mazzo solo dopo il nucleo di scoring.
+1. UI web del report mazzo.
 
 ## Deploy Online
 
@@ -210,6 +209,7 @@ Questo permette al componente `card_quality` di usare dati reali raccolti dal la
 Il contextual evaluator considera la linea del comandante: se il comandante segnala graveyard, artifacts, tokens, spellslinger, lifegain, aristocrats, counters, enchantments, equipment, tribal, landfall, blink, control o reanimator, il target ideale di quel pacchetto aumenta prima di applicare diminishing returns.
 `classifyCommanderBracket` assegna il tavolo Wizards da Game Changers, combo da due carte, extra turn e mass land denial. Il voto resta indipendente.
 Il piano di gioco premia densita' di ruoli e copertura delle categorie chiave, non il semplice conteggio di carte taggate.
+`generateDeckScoreExplanation` cita il piano inferito dal comandante, mana base sottile, curva alta e combo rilevanti. I benchmark bloccano queste frasi con `expectedMainFindings`.
 La mana base abbassa il target di terre se il mazzo ha gia' ramp/fast mana, cosi' un profilo cEDH con poche terre non viene trattato come un precon senza accelerazione.
 
 ## Tag Esterni

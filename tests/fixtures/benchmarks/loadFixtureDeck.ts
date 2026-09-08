@@ -20,6 +20,7 @@ export function loadRealDeckBenchmark(
   description: string,
   expectedScoreRange: ScoringBenchmark["expectedScoreRange"],
   expectedBracket?: ScoringBenchmark["expectedBracket"],
+  expectedMainFindings?: ScoringBenchmark["expectedMainFindings"],
 ): ScoringBenchmark {
   const parsed = parseDeckList(readFileSync(join(realDecksPath, fileName), "utf8"), {
     sourceType: "plain_text",
@@ -52,5 +53,6 @@ export function loadRealDeckBenchmark(
     ...(detectedCombos.length > 0 ? { detectedCombos } : {}),
     expectedScoreRange,
     ...(expectedBracket !== undefined ? { expectedBracket } : {}),
+    ...(expectedMainFindings && expectedMainFindings.length > 0 ? { expectedMainFindings } : {}),
   };
 }

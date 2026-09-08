@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { analyzeDeckStructure } from "../../src/analysis/index.js";
+import { analyzeConsistency } from "../../src/consistency/index.js";
+import { generateDeckScoreExplanation } from "../../src/explanation/index.js";
 import { scoreCommanderDeck } from "../../src/scoring/index.js";
 import { scoringBenchmarks } from "../fixtures/benchmarks/benchmarkDecks.js";
 import type { ScoringBenchmark } from "../fixtures/benchmarks/benchmarkTypes.js";
@@ -8,12 +11,25 @@ describe("scoring benchmarks", () => {
   for (const benchmark of scoringBenchmarks) {
     it(`${benchmark.id}: ${benchmark.description}`, () => {
       const score = scoreBenchmark(benchmark);
+      const explanation = explainBenchmark(benchmark, score);
 
       expect(score.finalScore).toBeGreaterThanOrEqual(benchmark.expectedScoreRange.min);
       expect(score.finalScore).toBeLessThanOrEqual(benchmark.expectedScoreRange.max);
 
       if (benchmark.expectedBracket) {
         expect(score.commanderBracket).toBe(benchmark.expectedBracket);
+      }
+
+      const findingsText = [
+        explanation.summary,
+        explanation.scoreNotes,
+        ...explanation.strengths,
+        ...explanation.weaknesses,
+        ...explanation.recommendations,
+      ].join("\n");
+
+      for (const finding of benchmark.expectedMainFindings ?? []) {
+        expect(findingsText).toContain(finding);
       }
     });
   }
@@ -70,6 +86,17 @@ function scoreBenchmark(benchmark: ScoringBenchmark) {
     legality: benchmark.legality,
     ...(benchmark.comboEvaluations ? { comboEvaluations: benchmark.comboEvaluations } : {}),
     ...(benchmark.detectedCombos ? { detectedCombos: benchmark.detectedCombos } : {}),
+  });
+}
+
+function explainBenchmark(benchmark: ScoringBenchmark, score = scoreBenchmark(benchmark)) {
+  return generateDeckScoreExplanation({
+    score,
+    legality: benchmark.legality,
+    structure: analyzeDeckStructure(benchmark.deck),
+    consistency: analyzeConsistency(benchmark.deck),
+    deck: benchmark.deck,
+    ...(benchmark.comboEvaluations ? { comboEvaluations: benchmark.comboEvaluations } : {}),
   });
 }
 

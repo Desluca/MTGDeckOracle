@@ -36,6 +36,33 @@ describe("generateDeckScoreExplanation", () => {
     ).toBe(true);
   });
 
+  it("names the commander game plan and a thin mana base", () => {
+    const deck = createResolvedTestDeck({
+      commanders: [
+        createTestCard({
+          name: "Meren of Clan Nel Toth",
+          canBeCommander: true,
+          typeLine: "Legendary Creature — Elf Shaman",
+          oracleText: "Return target creature card from your graveyard to the battlefield.",
+        }),
+      ],
+      mainboard: [
+        mainboardCard(createTestCard({ name: "Land", types: ["land"], typeLine: "Basic Land — Swamp" }), 4),
+        mainboardCard(createTestCard({ name: "Reanimate", functionalTags: ["recursion", "graveyard_synergy"] }), 10),
+      ],
+    });
+    const legality = legalReport();
+    const structure = analyzeDeckStructure(deck);
+    const consistency = analyzeConsistency(deck);
+    const score = scoreCommanderDeck({ deck, legality, consistency });
+    const explanation = generateDeckScoreExplanation({ score, legality, structure, consistency, deck });
+
+    expect(explanation.summary).toContain("reanimator");
+    expect(explanation.summary).toContain("poche terre");
+    expect(explanation.strengths.some((strength) => strength.includes("reanimator"))).toBe(true);
+    expect(explanation.weaknesses.some((weakness) => weakness.includes("poche terre"))).toBe(true);
+  });
+
   it("calls out legality problems", () => {
     const deck = createResolvedTestDeck();
     const legality: CommanderLegalityReport = {
