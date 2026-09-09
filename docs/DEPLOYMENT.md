@@ -1,12 +1,13 @@
 # Deployment
 
-Il deploy pubblico e' il **Rating Lab** (confronti Elo tra carte), non la UI di analisi mazzo. L'analyzer resta CLI (`npm run analyze`) finche' non esiste la Milestone 5.
+Il sito pubblico e' un server Node: **Rating Lab** (confronti Elo) e **analisi mazzo** su `/analyze` (lista testuale, niente URL). La CLI `npm run analyze` resta disponibile.
 
 MTG Deck Oracle puo' andare online come applicazione Node.js con PostgreSQL.
 
 La prima versione pubblica espone:
 
 - homepage su `/`;
+- analisi mazzo su `/analyze` (GET form, POST lista);
 - Rating Lab su `/rating-lab`;
 - leaderboard carte su `/leaderboard`;
 - grafico attivita' su `/graph`;
@@ -31,6 +32,9 @@ Vedi `.env.example`.
 PORT=5174
 DATABASE_URL=postgres://user:password@host:5432/mtgdeckoracle
 POSTGRES_SSL=true
+
+# Skip Scryfall and Spellbook HTTP. Cards come only from .cache/scryfall-cards.json.
+MTG_DECK_ORACLE_OFFLINE=0
 ```
 
 `POSTGRES_SSL=true` e' il default corretto per la maggior parte dei provider gestiti. Per un PostgreSQL locale puoi usare `POSTGRES_SSL=false`.

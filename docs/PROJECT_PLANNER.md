@@ -241,7 +241,7 @@ Liste reali oracle-tagged in `tests/fixtures/decks/real/` (bracket atteso = cost
 
 I range e i `expectedMainFindings` stanno in `benchmarkDecks.ts`. Il report deve citare il piano del comandante, non solo il voto.
 
-Prossimo passo calibrazione: UI web del report mazzo dopo il nucleo di scoring.
+Prossimo passo calibrazione: polish del report su `/analyze` e liste reali; import URL resta M7.
 
 ## Decisioni Prese
 
@@ -249,13 +249,13 @@ Prossimo passo calibrazione: UI web del report mazzo dopo il nucleo di scoring.
 - Dati carte: Scryfall API con cache file in `.cache/scryfall-cards.json`.
 - Combo: Commander Spellbook via API ufficiale, cache file, seed versionato in `knownComboSeed` (Isochron, Thoracle, Breach, Dualcaster).
 - Rating persistenti: JSON locale in sviluppo, PostgreSQL in produzione (`DATABASE_URL`).
-- Report mazzo: CLI oggi; UI web dopo M6.
-- Rating Lab: sito Node gia' deployabile (Render).
+- Report mazzo: CLI e pagina `/analyze` (HTML Node, italiano). Niente URL.
+- Rating Lab: sito Node gia' deployabile (Render); `/analyze` vive sullo stesso processo.
 
 Ancora aperte, non bloccanti per lo scoring:
 
-- Stack frontend del report mazzo (Next.js, Vite React o altro).
-- Lingua UI report (italiano, inglese o entrambe).
+- Grafici interattivi e polish del report.
+- Lingua inglese del report web (oggi italiano).
 
 ## Rischi
 
@@ -290,4 +290,4 @@ Il motore (MVP CLI) e' coperto quando, e oggi lo e':
 - normalizza correttamente la consistenza dei mazzi piu' grandi;
 - supera test su fixture benchmark.
 
-L'MVP prodotto (sito report) richiede in piu' M5, dopo che M6 ha liste reali coerenti tra CLI e test.
+L'MVP prodotto ha un primo `/analyze` sullo stesso server Node del Rating Lab. Restano polish, URL import, budget e versioning.

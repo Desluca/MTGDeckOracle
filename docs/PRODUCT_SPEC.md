@@ -10,7 +10,7 @@ MTG Deck Oracle e' un assistente di analisi per mazzi Commander. Il prodotto dev
 
 La valutazione deve essere comprensibile, motivata e utile. Un numero da 0 a 100 senza spiegazione non basta.
 
-Stato rispetto al codice: il flusso sotto e' coperto dalla CLI e da `analyzeCommanderDeck`. L'ingresso "incolla lista sul sito" e' Milestone 5. L'import da URL Moxfield/Archidekt e' Milestone 7.
+Stato rispetto al codice: il flusso sotto e' coperto dalla CLI, da `analyzeCommanderDeck` e dalla pagina `/analyze` (HTML Node, italiano). L'import da URL Moxfield/Archidekt e' Milestone 7.
 
 ## Utenti Target
 

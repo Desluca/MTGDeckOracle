@@ -8,14 +8,14 @@ Le milestone restano il piano di prodotto. L'ordine reale non e' strettamente M0
 | --- | --- |
 | M0 Fondamenta | Fatto |
 | M1 Parser e validazione | Fatto (liste testuali; niente import URL) |
-| M2 Analisi strutturale | Fatto nel motore (curva e ruoli nel report CLI; grafici UI dopo) |
+| M2 Analisi strutturale | Fatto nel motore (curva e ruoli nel report CLI e su `/analyze`) |
 | M3 Scoring engine MVP | Fatto. Voto e bracket sono output distinti. |
 | M4 Combo e sinergie | Parziale: adapter Spellbook, seed Isochron/Thoracle/Breach/Dualcaster, cache; catalogo pieno non in repo |
-| M5 UI MVP report mazzo | Non iniziato (il Rating Lab non sostituisce questa milestone) |
+| M5 UI MVP report mazzo | Iniziato: form incolla + report HTML Node su `/analyze` (niente URL) |
 | M6 Calibrazione | In corso: 21 liste reali, `expectedMainFindings` sul report; bracket da costruzione |
 | M7 Miglioramenti avanzati | Parziale: recommendation strutturali filtrate sul colore; URL, budget, versioning no |
 
-Prossimi slice: UI report dopo il nucleo di scoring.
+Prossimi slice: polish del report web e resto di M6; import URL resta M7.
 
 ## Milestone 0 - Fondamenta
 
@@ -60,7 +60,7 @@ Output:
 
 ## Milestone 2 - Analisi Strutturale
 
-Stato: fatto nel motore. I grafici arrivano con M5.
+Stato: fatto nel motore. La curva a barre e' nel report HTML di `/analyze`.
 
 Obiettivo: produrre una panoramica utile del mazzo.
 
@@ -125,7 +125,7 @@ Output:
 
 ## Milestone 5 - UI MVP
 
-Stato: non iniziato. Il Rating Lab (`/rating-lab`) raccoglie Elo carte; non e' la pagina di analisi mazzo.
+Stato: iniziato. `/analyze` incolla una lista testuale e mostra il report HTML (curva, punti forti/deboli, consigli, errori di legalita') sullo stesso server Node del Rating Lab, in italiano. Il Rating Lab (`/rating-lab`) resta i confronti Elo. Niente import da URL.
 
 Obiettivo: rendere il motore usabile da un giocatore senza CLI.
 
@@ -145,11 +145,11 @@ Output:
 
 ## Milestone 6 - Calibrazione
 
-Stato: in corso. Si lavora su questa milestone prima di M5.
+Stato: in corso. La calibrazione continua in parallelo al report web.
 
 Suite attuale: profili sintetici in `tests/fixtures/benchmarks/benchmarkDecks.ts` e 21 liste reali in `tests/fixtures/decks/real/` (Pantlaza precon e precon-modded, Muldrotha, Kinnan, Thrasios/Tymna, Gishath, Whtz 120, Kess spellslinger, Grand Arbiter stax, Light-Paws voltron, Rhys tokens, Urza artifacts, Sythis enchantress, Teysa aristocrats, Aesi landfall, Brago blink, Teferi control, Meren reanimator, Krenko goblins, due illegalita').
 
-Aperto: UI del report mazzo. Il bracket non e' piu' una fascia del voto.
+Aperto: polish del report e catalogo Spellbook completo. Il bracket non e' piu' una fascia del voto.
 
 Obiettivo: rendere il voto credibile.
 
@@ -169,7 +169,7 @@ Output:
 
 ## Milestone 7 - Miglioramenti Avanzati
 
-Stato: parziale. Recommendation strutturali in CLI, filtrate sull'identita' colore del comandante. Restano URL, budget, versioning e UI.
+Stato: parziale. Recommendation strutturali in CLI e sul report web, filtrate sull'identita' colore del comandante. Restano URL, budget e versioning.
 
 Obiettivo: aumentare qualita' e profondita' del report.
 

@@ -6,7 +6,7 @@ L'obiettivo non e' dare un voto superficiale basato solo sulle carte piu' famose
 
 Il risultato e' un punteggio da 0 a 100 accompagnato da una spiegazione leggibile, utile sia a chi vuole migliorare il mazzo sia a chi vuole capire se il power level e' adatto al proprio tavolo.
 
-Oggi il motore e' usabile da CLI. Il sito pubblico e' il Rating Lab per i confronti Elo tra carte; la UI del report mazzo arriva dopo la calibrazione dello scoring.
+Oggi il motore e' usabile da CLI e da `/analyze`: si incolla una lista testuale e si ottiene il report HTML. Il Rating Lab resta il sito Elo tra carte. L'import da URL Moxfield/Archidekt non e' disponibile.
 
 Il motore puo' ricevere rating Elo raccolti dal Rating Lab tramite un provider dedicato, normalizzandoli in valori carta 0-10 per il componente `card_quality`.
 
@@ -25,8 +25,9 @@ MTG Deck Oracle deve evitare questi errori. La forza di un mazzo non dipende sol
 - Combo da Commander Spellbook, con seed locale e cache disco.
 - Consistenza ipergeometrica, scoring 0-100, bracket 1-5, spiegazione e consigli strutturali.
 - Report CLI in JSON, Markdown o HTML, con voto 0-100 e bracket di costruzione separati.
+- Pagina web `/analyze`: incolla una lista testuale (italiano), curva di mana, punti forti/deboli, consigli ed errori di legalita'.
 
-Non esiste ancora: pagina web per incollare una decklist, import da URL Moxfield/Archidekt, grafici interattivi.
+Non esiste ancora: import da URL Moxfield/Archidekt, grafici interattivi.
 
 ## Output Del Report
 
@@ -58,13 +59,13 @@ Queste guide devono descrivere il codice attuale. Dopo ogni slice di sviluppo si
 
 ## Stato Progetto
 
-Il motore di valutazione e' implementato e testato (Vitest + typecheck, CI su Node 22). La priorita' resta calibrare lo scoring su liste reali prima della UI report.
+Il motore di valutazione e' implementato e testato (Vitest + typecheck, CI su Node 22). CLI e `/analyze` usano lo stesso runtime.
 
-Fatto: parser, validazione, tagging, combo Spellbook (seed allargato + cache), pipeline `analyzeCommanderDeck`, CLI, Rating Lab, 21 decklist reali oracle-tagged, spiegazioni calibrate (`expectedMainFindings`), consigli filtrati sul colore.
+Fatto: parser, validazione, tagging, combo Spellbook (seed allargato + cache), pipeline `analyzeCommanderDeck`, CLI, Rating Lab, report web su `/analyze`, 21 decklist reali oracle-tagged, spiegazioni calibrate (`expectedMainFindings`), consigli filtrati sul colore.
 
-In corso: catalogo Spellbook completo (resta fuori dal repo). Voto e bracket sono output distinti. Benchmark e CLI usano lo stesso ritaglio `combo_piece`.
+In corso: catalogo Spellbook completo (resta fuori dal repo). Voto e bracket sono output distinti. Benchmark, CLI e `/analyze` usano lo stesso ritaglio `combo_piece`.
 
-Non in corso: UI del report mazzo.
+Non in corso: import URL, budget, versioning dell'algoritmo.
 
 ```bash
 npm test
@@ -177,7 +178,10 @@ Poi apri:
 
 ```text
 http://localhost:5174
+http://localhost:5174/analyze
 ```
+
+`/analyze` accetta una lista testuale (form o JSON `{ "decklist": "..." }`). `MTG_DECK_ORACLE_OFFLINE=1` salta Spellbook HTTP e Scryfall HTTP: le carte arrivano solo da `.cache/scryfall-cards.json`.
 
 Il rating lab usa Scryfall per pescare carte random legali in Commander e aggiorna i punteggi con Elo.
 In locale salva carte/confronti in `.cache/rating-lab-db.json`; in produzione usa PostgreSQL tramite `DATABASE_URL`.
@@ -193,7 +197,7 @@ La leaderboard carica 100 carte per pagina e arricchisce progressivamente le car
 
 ## Deploy
 
-Il sito online e' il Rating Lab, non l'analyzer di mazzi. Espone homepage `/`, `/rating-lab`, leaderboard `/leaderboard`, grafico `/graph` e API `/api/rating-lab/*`.
+Il sito online espone Rating Lab e l'analisi mazzo su `/analyze`. Homepage `/`, form+report `/analyze`, `/rating-lab`, leaderboard `/leaderboard`, grafico `/graph` e API `/api/rating-lab/*`. Non importa liste da URL.
 
 Per preparare il database PostgreSQL:
 

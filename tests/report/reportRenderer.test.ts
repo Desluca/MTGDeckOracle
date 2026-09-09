@@ -19,9 +19,41 @@ describe("reportRenderer", () => {
 
     expect(html).toContain("<!doctype html>");
     expect(html).toContain("72/100");
-    expect(html).toContain("<h2>Score Breakdown</h2>");
-    expect(html).toContain("<h2>Consistency</h2>");
-    expect(html).toContain("<h2>Detailed Recommendations</h2>");
+    expect(html).toContain("<h2>Breakdown</h2>");
+    expect(html).toContain("<h2>Consistenza</h2>");
+    expect(html).toContain("<h2>Consigli dettagliati</h2>");
+    expect(html).toContain("<h2>Punti forti</h2>");
+    expect(html).toContain("<h2>Curva di mana</h2>");
+    expect(html).toContain('class="curve"');
+    expect(html).not.toContain('href="/analyze"');
+  });
+
+  it("adds site navigation when requested", () => {
+    const html = renderHtmlReport(createReport(), { includeSiteNav: true });
+
+    expect(html).toContain('href="/analyze"');
+    expect(html).toContain('href="/rating-lab"');
+  });
+
+  it("shows blocking legality errors", () => {
+    const html = renderHtmlReport({
+      ...createReport(),
+      legality: {
+        isLegal: false,
+        legalityCap: 40,
+        issues: [
+          {
+            code: "invalid_deck_size",
+            severity: "blocking",
+            message: "Il mazzo ha troppe carte.",
+          },
+        ],
+      },
+    });
+
+    expect(html).toContain("Errori di legalita'");
+    expect(html).toContain("invalid_deck_size");
+    expect(html).toContain("class=\"illegal\"");
   });
 
   it("escapes html content", () => {
@@ -68,7 +100,11 @@ function createReport(): DeckReport {
         averageManaValue: 2.8,
         colorIdentity: ["W", "U"],
       },
-      manaCurve: [],
+      manaCurve: [
+        { manaValue: 1, count: 8 },
+        { manaValue: 2, count: 14 },
+        { manaValue: 3, count: 11 },
+      ],
       roleCounts: [],
     },
     consistency: {

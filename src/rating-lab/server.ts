@@ -1,5 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 
+import {
+  ANALYZE_PATH,
+  MAX_ANALYZE_BODY_BYTES,
+  analyzeDeckToHtml,
+  extractDecklistFromRequestBody,
+  renderAnalyzeFormPage,
+} from "../deck-report/index.js";
+import { createAnalyzeRuntime, type AnalyzeRuntime } from "../pipeline/index.js";
 import { applyConfiguredRatingSeeds } from "./bestCardSeed.js";
 import { summarizeRatingActivity } from "./activitySummary.js";
 import { createCardMatch } from "./matchmaker.js";
@@ -11,6 +19,8 @@ import type { FirstCardRatingPool } from "./matchmaker.js";
 import type { MatchStrategy } from "./ratingTypes.js";
 
 const DEFAULT_PORT = 5174;
+
+let analyzeRuntimePromise: Promise<AnalyzeRuntime> | undefined;
 
 const store = createRatingStore();
 const randomCardSource = new ScryfallRandomCardSource();
@@ -42,6 +52,16 @@ async function routeRequest(request: IncomingMessage, response: ServerResponse):
 
   if (request.method === "GET" && url.pathname === "/") {
     sendHtml(response, renderLandingPage());
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === ANALYZE_PATH) {
+    sendHtml(response, renderAnalyzeFormPage());
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === ANALYZE_PATH) {
+    await handleAnalyzeDeck(request, response);
     return;
   }
 
@@ -146,11 +166,71 @@ function sendJson(response: ServerResponse, statusCode: number, body: unknown): 
   response.end(JSON.stringify(body, null, 2));
 }
 
-function sendHtml(response: ServerResponse, body: string): void {
-  response.writeHead(200, {
+function sendHtml(response: ServerResponse, body: string, statusCode = 200): void {
+  response.writeHead(statusCode, {
     "Content-Type": "text/html; charset=utf-8",
   });
   response.end(body);
+}
+
+async function handleAnalyzeDeck(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  const body = await readLimitedBody(request, MAX_ANALYZE_BODY_BYTES);
+
+  if (!body.ok) {
+    sendHtml(response, renderAnalyzeFormPage("La lista e' troppo lunga."), 413);
+    return;
+  }
+
+  let decklist: string;
+
+  try {
+    decklist = extractDecklistFromRequestBody(request.headers["content-type"], body.text);
+  } catch {
+    sendHtml(response, renderAnalyzeFormPage("Il corpo della richiesta non e' valido."), 400);
+    return;
+  }
+
+  const runtime = await getAnalyzeRuntime();
+  const result = await analyzeDeckToHtml(decklist, runtime);
+  sendHtml(response, result.html, result.statusCode);
+}
+
+async function getAnalyzeRuntime(): Promise<AnalyzeRuntime> {
+  if (!analyzeRuntimePromise) {
+    analyzeRuntimePromise = createAnalyzeRuntime({
+      offline: process.env.MTG_DECK_ORACLE_OFFLINE === "1",
+      cardRatings: "auto",
+    });
+  }
+
+  return analyzeRuntimePromise;
+}
+
+async function readLimitedBody(
+  request: IncomingMessage,
+  maxBytes: number,
+): Promise<{ readonly ok: true; readonly text: string } | { readonly ok: false }> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  let tooLarge = false;
+
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buffer.length;
+
+    if (size > maxBytes) {
+      tooLarge = true;
+      continue;
+    }
+
+    chunks.push(buffer);
+  }
+
+  if (tooLarge) {
+    return { ok: false };
+  }
+
+  return { ok: true, text: Buffer.concat(chunks).toString("utf8") };
 }
 
 function renderLandingPage(): string {
@@ -178,12 +258,13 @@ function renderLandingPage(): string {
     <section class="hero">
       <h1>MTG Deck Oracle</h1>
       <p>Analisi Commander pensata per valutare forza, consistenza, curva, combo e piano di gioco di un mazzo con un punteggio leggibile da 0 a 100.</p>
-      <a href="/rating-lab">Apri Rating Lab</a>
+      <a href="/analyze">Analizza un mazzo</a>
+      <a class="secondary" href="/rating-lab">Apri Rating Lab</a>
       <a class="secondary" href="/graph">Vedi Grafico</a>
       <a class="secondary" href="/leaderboard">Leaderboard Carte</a>
     </section>
     <section class="grid">
-      <article class="card"><h2>Deck Analysis</h2><p>Import decklist, validazione Commander e scoring sono il cuore del prodotto.</p></article>
+      <article class="card"><h2>Analisi mazzo</h2><p>Incolla una lista testuale: legalita', curva, combo e voto 0-100 nello stesso report. Non si importano URL.</p></article>
       <article class="card"><h2>Combo & Curve</h2><p>Il motore considera combo, costo di mana, velocita' e probabilita' di trovare i pezzi.</p></article>
       <article class="card"><h2>Rating Lab</h2><p>La raccolta dati aiuta a raffinare il valore base delle singole carte.</p></article>
     </section>
@@ -217,7 +298,7 @@ function renderGraphPage(): string {
 </head>
 <body>
   <main>
-    <p><a href="/">Home</a> · <a href="/rating-lab">Rating Lab</a></p>
+    <p><a href="/">Home</a> · <a href="/analyze">Analizza</a> · <a href="/rating-lab">Rating Lab</a></p>
     <h1>Andamento Valutazioni</h1>
     <p>Grafico dei voti raccolti nel tempo. Gli utenti sono conteggiati tramite visitor id anonimo salvato nel browser.</p>
     <section class="stats">
@@ -289,7 +370,7 @@ function renderLeaderboardPage(): string {
 </head>
 <body>
   <main>
-    <p><a href="/">Home</a> · <a href="/rating-lab">Rating Lab</a> · <a href="/graph">Grafico</a></p>
+    <p><a href="/">Home</a> · <a href="/analyze">Analizza</a> · <a href="/rating-lab">Rating Lab</a> · <a href="/graph">Grafico</a></p>
     <h1>Leaderboard Carte</h1>
     <p class="status">Mostra 100 carte per pagina per caricare velocemente le immagini.</p>
     <div class="actions">
@@ -390,7 +471,7 @@ function renderHomePage(): string {
   <main>
     <h1>MTG Deck Oracle Rating Lab</h1>
     <p>Scegli quale carta ritieni piu' forte. Ogni voto aggiorna un rating Elo salvato nel database.</p>
-    <p><a class="nav-button" href="/leaderboard">Vai alla Leaderboard</a></p>
+    <p><a class="nav-button" href="/analyze">Analizza un mazzo</a> <a class="nav-button" href="/leaderboard">Vai alla Leaderboard</a></p>
     <p id="strategy" class="status">Caricamento...</p>
     <div class="filters" aria-label="Filtro rating prima carta">
       <button class="filter" data-pool="weak" onclick="setFirstPool('weak')">scarse</button>

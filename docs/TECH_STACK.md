@@ -31,7 +31,7 @@ Motivi:
 
 ### Frontend Report Mazzo
 
-Non iniziato. Stack ancora aperto (React o Next.js). Il Rating Lab ha gia' HTML servito dal server Node.
+HTML servito dallo stesso server Node del Rating Lab (`src/deck-report/`, rotta `/analyze`). Italiano. Niente Next.js/React in questo slice. La CLI e il web condividono `createAnalyzeRuntime`.
 
 ## Principio Architetturale
 
@@ -80,6 +80,9 @@ src/
     knownComboSeed.ts
   pipeline/
     analyzeCommanderDeck.ts
+    analyzeRuntime.ts
+  deck-report/
+    analyzeDeckWeb.ts
   consistency/
     consistencyAnalyzer.ts
   deck/
@@ -160,7 +163,7 @@ tests/
         whtz-120.deck
 ```
 
-La CLI `npm run analyze` orchestra `analyzeCommanderDeck`.
+La CLI `npm run analyze` e `/analyze` orchestrano `analyzeCommanderDeck` tramite `createAnalyzeRuntime`.
 I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
 `recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
 `--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.
@@ -179,9 +182,9 @@ CI GitHub Actions (`.github/workflows/ci.yml`) gira su Node 22: `npm ci`, `npm t
 
 ## Prossimo Step Tecnico
 
-Dopo spiegazioni calibrate sui benchmark (`expectedMainFindings`):
+Dopo il primo report web su `/analyze`:
 
-1. UI web del report mazzo.
+1. Polish del report e resto della calibrazione M6.
 
 ## Deploy Online
 
@@ -190,13 +193,14 @@ La prima base deployabile usa un server Node.js compilato in `dist/` e PostgreSQ
 Rotte principali del Rating Lab:
 
 - `/`: homepage MTG Deck Oracle;
+- `/analyze`: form incolla lista + report HTML;
 - `/rating-lab`: interfaccia confronti Elo;
 - `/leaderboard`: classifica carte;
 - `/graph`: attivita' voti;
 - `/api/rating-lab/*`: API del laboratorio;
 - `/health`: health check per hosting provider.
 
-Non c'e' una rotta di analisi mazzo: quello resta CLI finche' non esiste M5.
+`MTG_DECK_ORACLE_OFFLINE=1` fa analizzare `/analyze` e la CLI senza HTTP Scryfall/Spellbook.
 
 In sviluppo locale, se `DATABASE_URL` non e' configurato, il laboratorio usa ancora il file JSON in `.cache/`.
 
