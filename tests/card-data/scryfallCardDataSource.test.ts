@@ -81,7 +81,7 @@ describe("ScryfallCardDataSource", () => {
     expect(fetchFn).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        body: JSON.stringify({ identifiers: [{ name: "brightclimb pathway // grimclimb pathway" }] }),
+        body: JSON.stringify({ identifiers: [{ name: "brightclimb pathway" }] }),
       }),
     );
     expect(cards.get("brightclimb pathway // grimclimb pathway")?.identity.name).toBe("Brightclimb Pathway // Grimclimb Pathway");

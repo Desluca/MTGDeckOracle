@@ -64,3 +64,9 @@ export function expandCardLookupMap(cardsByName: ReadonlyMap<string, Card>): Map
 
   return expanded;
 }
+
+export function scryfallCollectionName(cardName: string): string {
+  const canonicalName = normalizeLookupName(cardName);
+  const [frontFace] = canonicalName.split(" // ");
+  return frontFace ?? canonicalName;
+}

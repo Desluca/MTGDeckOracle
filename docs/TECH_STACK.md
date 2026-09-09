@@ -164,7 +164,7 @@ tests/
 ```
 
 La CLI `npm run analyze` e `/analyze` orchestrano `analyzeCommanderDeck` tramite `createAnalyzeRuntime`.
-`normalizeLookupName` unifica `Nome / Altro Nome` e `Nome // Altro Nome`; lookup e cache risolvono anche una sola faccia di carte double-faced, split e adventure.
+`normalizeLookupName` unifica `Nome / Altro Nome` e `Nome // Altro Nome`; lookup e cache risolvono anche una sola faccia di carte double-faced, split e adventure. La collection Scryfall chiede la faccia frontale, perche' il nome completo con `//` non viene trovato.
 Una lista da 100 carte senza sezione Commander tratta la prima carta come comandante.
 I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
 `recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.

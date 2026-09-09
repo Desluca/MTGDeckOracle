@@ -1,6 +1,6 @@
 import type { Card } from "../domain/index.js";
 import type { CardDataSource } from "./cardDataSource.js";
-import { cardLookupKeys, expandCardLookupMap, normalizeLookupName, uniqueNormalizedNames } from "./cardDataSource.js";
+import { cardLookupKeys, expandCardLookupMap, normalizeLookupName, scryfallCollectionName, uniqueNormalizedNames } from "./cardDataSource.js";
 import { mapScryfallCardToCard } from "./scryfallCardMapper.js";
 import type { ScryfallCollectionResponse } from "./scryfallTypes.js";
 
@@ -61,7 +61,7 @@ export class ScryfallCardDataSource implements CardDataSource {
         "User-Agent": "MTGDeckOracle/0.1.0",
       },
       body: JSON.stringify({
-        identifiers: cardNames.map((name) => ({ name })),
+        identifiers: uniqueNormalizedNames(cardNames.map((name) => scryfallCollectionName(name))).map((name) => ({ name })),
       }),
     });
 
