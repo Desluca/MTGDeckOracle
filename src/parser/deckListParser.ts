@@ -75,7 +75,6 @@ export function parseDeckList(rawText: string, options: ParseDeckListOptions = {
   const input = createRawDeckInput(rawText, options);
   const lines: ParsedDeckLine[] = [];
   const issues: ParseIssue[] = [];
-  const sectionCounts: Record<DeckSection, number> = { ...INITIAL_SECTION_COUNTS };
   let currentSection = options.defaultSection ?? "mainboard";
 
   rawText
@@ -129,18 +128,62 @@ export function parseDeckList(rawText: string, options: ParseDeckListOptions = {
       }
 
       lines.push(parsedLine.line);
-      sectionCounts[parsedLine.line.section] += parsedLine.line.quantity;
     });
 
-  const totalQuantity = lines.reduce((total, line) => total + line.quantity, 0);
+  const adjustedLines = options.defaultSection === undefined ? applyImplicitCommander(lines) : lines;
+  const sectionCounts = countSections(adjustedLines);
+  const totalQuantity = adjustedLines.reduce((total, line) => total + line.quantity, 0);
 
   return {
     input,
-    lines,
+    lines: adjustedLines,
     issues,
     sectionCounts,
     totalQuantity,
   };
+}
+
+const IMPLICIT_COMMANDER_DECK_SIZE = 100;
+
+function applyImplicitCommander(lines: readonly ParsedDeckLine[]): readonly ParsedDeckLine[] {
+  const playableQuantity = lines
+    .filter((line) => line.section === "commander" || line.section === "mainboard")
+    .reduce((total, line) => total + line.quantity, 0);
+  const commanderQuantity = lines
+    .filter((line) => line.section === "commander")
+    .reduce((total, line) => total + line.quantity, 0);
+
+  if (commanderQuantity > 0 || playableQuantity !== IMPLICIT_COMMANDER_DECK_SIZE) {
+    return lines;
+  }
+
+  const firstIndex = lines.findIndex((line) => line.section === "mainboard");
+  const firstLine = firstIndex >= 0 ? lines[firstIndex] : undefined;
+
+  if (!firstLine) {
+    return lines;
+  }
+
+  if (firstLine.quantity === 1) {
+    return lines.map((line, index) => (index === firstIndex ? { ...line, section: "commander" } : line));
+  }
+
+  return [
+    ...lines.slice(0, firstIndex),
+    { ...firstLine, quantity: 1, section: "commander" },
+    { ...firstLine, quantity: firstLine.quantity - 1 },
+    ...lines.slice(firstIndex + 1),
+  ];
+}
+
+function countSections(lines: readonly ParsedDeckLine[]): Record<DeckSection, number> {
+  const sectionCounts: Record<DeckSection, number> = { ...INITIAL_SECTION_COUNTS };
+
+  for (const line of lines) {
+    sectionCounts[line.section] += line.quantity;
+  }
+
+  return sectionCounts;
 }
 
 function createRawDeckInput(rawText: string, options: ParseDeckListOptions): RawDeckInput {

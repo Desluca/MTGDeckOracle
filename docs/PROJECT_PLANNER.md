@@ -46,6 +46,7 @@ Responsabilita':
 
 - leggere liste testuali;
 - riconoscere quantita' e sezioni;
+- se manca la sezione Commander e la lista giocabile e' da 100 carte, trattare la prima carta come comandante;
 - normalizzare nomi carte;
 - segnalare ambiguita';
 - produrre una struttura dati pulita.

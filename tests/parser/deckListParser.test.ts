@@ -58,6 +58,43 @@ describe("parseDeckList", () => {
     expect(parsed.totalQuantity).toBe(101);
   });
 
+  it("treats the first card as commander on an unlabeled 100-card list", () => {
+    const parsed = parseDeckList(unlabeledHundredCardList("Kinnan, Bonder Prodigy"));
+
+    expect(parsed.issues).toEqual([]);
+    expect(parsed.totalQuantity).toBe(100);
+    expect(parsed.sectionCounts.commander).toBe(1);
+    expect(parsed.sectionCounts.mainboard).toBe(99);
+    expect(parsed.lines[0]).toMatchObject({
+      rawName: "Kinnan, Bonder Prodigy",
+      section: "commander",
+    });
+    expect(parsed.lines[1]?.section).toBe("mainboard");
+  });
+
+  it("treats the first card as commander when a 100-card list has Deck but no Commander section", () => {
+    const parsed = parseDeckList(`Deck\n${unlabeledHundredCardList("Atraxa, Praetors' Voice")}`);
+
+    expect(parsed.sectionCounts.commander).toBe(1);
+    expect(parsed.sectionCounts.mainboard).toBe(99);
+    expect(parsed.lines[0]?.rawName).toBe("Atraxa, Praetors' Voice");
+    expect(parsed.lines[0]?.section).toBe("commander");
+  });
+
+  it("does not invent a commander for unlabeled lists that are not 100 cards", () => {
+    const parsed = parseDeckList("1 Kinnan, Bonder Prodigy\n1 Sol Ring\n1 Forest");
+
+    expect(parsed.lines.every((line) => line.section === "mainboard")).toBe(true);
+    expect(parsed.sectionCounts.commander).toBe(0);
+  });
+
+  it("keeps an explicit Commander section", () => {
+    const parsed = parseDeckList("Commander\n1 Kinnan, Bonder Prodigy\nDeck\n1 Sol Ring");
+
+    expect(parsed.lines[0]?.section).toBe("commander");
+    expect(parsed.lines[1]?.section).toBe("mainboard");
+  });
+
   it("parses quantity followed by card name", () => {
     const parsed = parseDeckList("1 Sol Ring");
 
@@ -313,3 +350,8 @@ describe("parseDeckList", () => {
     expect(parsed.sectionCounts.mainboard).toBe(1);
   });
 });
+
+function unlabeledHundredCardList(commanderName: string): string {
+  const mainboard = Array.from({ length: 99 }, (_, index) => `1 Filler Card ${index + 1}`);
+  return [`1 ${commanderName}`, ...mainboard].join("\n");
+}

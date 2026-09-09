@@ -42,6 +42,7 @@ Il sistema deve supportare:
 - carte doppia faccia o split con un nome o due, ad esempio `1 Brightclimb Pathway / Grimclimb Pathway (ZNR) 285` e `1 Fire // Ice`;
 - sezioni esportate come commenti, ad esempio `// COMMANDER` e `// DECK`;
 - sezioni come Commander, Deck, Creatures, Lands, Sideboard;
+- liste da 100 carte senza sezione Commander: la prima carta e' il comandante;
 - import futuro da servizi esterni tramite URL o API.
 
 Il parser deve essere tollerante sugli spazi e sui formati, ma severo sulla validita' finale della lista.
