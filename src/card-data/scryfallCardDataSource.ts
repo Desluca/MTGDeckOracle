@@ -1,6 +1,6 @@
 import type { Card } from "../domain/index.js";
 import type { CardDataSource } from "./cardDataSource.js";
-import { normalizeLookupName, uniqueNormalizedNames } from "./cardDataSource.js";
+import { cardLookupKeys, expandCardLookupMap, normalizeLookupName, uniqueNormalizedNames } from "./cardDataSource.js";
 import { mapScryfallCardToCard } from "./scryfallCardMapper.js";
 import type { ScryfallCollectionResponse } from "./scryfallTypes.js";
 
@@ -35,14 +35,21 @@ export class ScryfallCardDataSource implements CardDataSource {
 
     for (const batch of chunk(normalizedNames, this.batchSize)) {
       const response = await this.fetchCollection(batch);
+      const mappedCards = response.data.map(mapScryfallCardToCard);
 
-      for (const scryfallCard of response.data) {
-        const card = mapScryfallCardToCard(scryfallCard);
-        foundCards.set(card.identity.normalizedName, card);
+      for (const card of mappedCards) {
+        foundCards.set(normalizeLookupName(card.identity.name), card);
+      }
+
+      for (const requestedName of batch) {
+        const card = mappedCards.find((candidate) => cardLookupKeys(candidate).includes(requestedName));
+        if (card) {
+          foundCards.set(requestedName, card);
+        }
       }
     }
 
-    return foundCards;
+    return expandCardLookupMap(foundCards);
   }
 
   private async fetchCollection(cardNames: readonly string[]): Promise<ScryfallCollectionResponse> {

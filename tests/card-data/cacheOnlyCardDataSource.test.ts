@@ -16,4 +16,18 @@ describe("CacheOnlyCardDataSource", () => {
     expect(cards.get("sol ring")).toBe(solRing);
     expect(cards.has("arcane signet")).toBe(false);
   });
+
+  it("resolves double-faced cards from a single-slash name or the back face", async () => {
+    const pathway = createTestCard({
+      name: "Brightclimb Pathway // Grimclimb Pathway",
+      types: ["land"],
+      typeLine: "Land // Land",
+    });
+    const cache = new InMemoryCardCache();
+    await cache.set("brightclimb pathway // grimclimb pathway", pathway);
+    const source = new CacheOnlyCardDataSource(cache);
+
+    expect(await source.findCardByName("Brightclimb Pathway / Grimclimb Pathway")).toBe(pathway);
+    expect(await source.findCardByName("Grimclimb Pathway")).toBe(pathway);
+  });
 });

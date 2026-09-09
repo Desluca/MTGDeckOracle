@@ -120,6 +120,18 @@ describe("parseDeckList", () => {
     const parsed = parseDeckList("1 Fire // Ice");
 
     expect(parsed.lines[0]?.rawName).toBe("Fire // Ice");
+    expect(parsed.lines[0]?.normalizedName).toBe("fire // ice");
+  });
+
+  it("normalizes double-faced names exported with a single slash", () => {
+    const parsed = parseDeckList("1 Brightclimb Pathway / Grimclimb Pathway (ZNR) 285");
+
+    expect(parsed.lines[0]?.rawName).toBe("Brightclimb Pathway / Grimclimb Pathway");
+    expect(parsed.lines[0]?.normalizedName).toBe("brightclimb pathway // grimclimb pathway");
+  });
+
+  it("normalizes compact double-faced names without spaces around the slash", () => {
+    expect(normalizeCardName("Fire/Ice")).toBe("fire // ice");
   });
 
   it("recognizes Commander section headers", () => {

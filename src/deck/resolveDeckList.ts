@@ -1,6 +1,6 @@
 import type { Card, Color, DeckCard, DeckList, ParsedDeckLine } from "../domain/index.js";
 import type { CardDataSource } from "../card-data/index.js";
-import { uniqueNormalizedNames } from "../card-data/index.js";
+import { findCardByLookupName, uniqueNormalizedNames } from "../card-data/index.js";
 import type { ParsedDeck } from "../parser/index.js";
 
 export interface DeckResolutionResult {
@@ -23,7 +23,7 @@ export function resolveDeckListFromMap(
   cardsByNormalizedName: ReadonlyMap<string, Card>,
 ): DeckResolutionResult {
   const requestedNames = uniqueNormalizedNames(parsedDeck.lines.map((line) => line.normalizedName));
-  const unresolvedNames = requestedNames.filter((name) => !cardsByNormalizedName.has(name));
+  const unresolvedNames = requestedNames.filter((name) => !findCardByLookupName(cardsByNormalizedName, name));
 
   if (unresolvedNames.length > 0) {
     return {
@@ -55,7 +55,7 @@ function createDeckList(parsedDeck: ParsedDeck, cardsByNormalizedName: ReadonlyM
 }
 
 function createDeckCard(line: ParsedDeckLine, cardsByNormalizedName: ReadonlyMap<string, Card>): DeckCard {
-  const card = cardsByNormalizedName.get(line.normalizedName);
+  const card = findCardByLookupName(cardsByNormalizedName, line.normalizedName);
 
   if (!card) {
     throw new Error(`Card was not resolved: ${line.rawName}`);

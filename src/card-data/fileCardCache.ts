@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import type { Card } from "../domain/index.js";
-import type { CardCache } from "./cardDataSource.js";
+import { cardLookupKeys, expandCardLookupMap, normalizeLookupName, type CardCache } from "./cardDataSource.js";
 
 type SerializedCache = Record<string, Card>;
 
@@ -11,12 +11,15 @@ export class FileCardCache implements CardCache {
 
   async get(normalizedName: string): Promise<Card | undefined> {
     const cache = await this.readCache();
-    return cache[normalizedName];
+    return findCachedCard(cache, normalizedName);
   }
 
   async set(normalizedName: string, card: Card): Promise<void> {
     const cache = await this.readCache();
-    cache[normalizedName] = card;
+    cache[normalizeLookupName(normalizedName)] = card;
+    for (const key of cardLookupKeys(card)) {
+      cache[key] = card;
+    }
     await this.writeCache(cache);
   }
 
@@ -25,9 +28,9 @@ export class FileCardCache implements CardCache {
     const found = new Map<string, Card>();
 
     for (const normalizedName of normalizedNames) {
-      const card = cache[normalizedName];
+      const card = findCachedCard(cache, normalizedName);
       if (card) {
-        found.set(normalizedName, card);
+        found.set(normalizeLookupName(normalizedName), card);
       }
     }
 
@@ -37,8 +40,8 @@ export class FileCardCache implements CardCache {
   async setMany(cardsByNormalizedName: ReadonlyMap<string, Card>): Promise<void> {
     const cache = await this.readCache();
 
-    for (const [normalizedName, card] of cardsByNormalizedName.entries()) {
-      cache[normalizedName] = card;
+    for (const [normalizedName, card] of expandCardLookupMap(cardsByNormalizedName).entries()) {
+      cache[normalizeLookupName(normalizedName)] = card;
     }
 
     await this.writeCache(cache);
@@ -61,6 +64,17 @@ export class FileCardCache implements CardCache {
     await mkdir(dirname(this.cacheFilePath), { recursive: true });
     await writeFile(this.cacheFilePath, `${JSON.stringify(cache, null, 2)}\n`, "utf8");
   }
+}
+
+function findCachedCard(cache: SerializedCache, cardName: string): Card | undefined {
+  const normalizedName = normalizeLookupName(cardName);
+  const direct = cache[normalizedName];
+
+  if (direct) {
+    return direct;
+  }
+
+  return Object.values(cache).find((card) => cardLookupKeys(card).includes(normalizedName));
 }
 
 function isMissingFileError(error: unknown): boolean {

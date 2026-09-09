@@ -18,7 +18,7 @@ MTG Deck Oracle deve evitare questi errori. La forza di un mazzo non dipende sol
 
 ## Cosa Fa Oggi Il Motore
 
-- Parsing di liste testuali (quantita', `1x`, set/collector number, sezioni tipo `// COMMANDER`).
+- Parsing di liste testuali (quantita', `1x`, set/collector number, sezioni tipo `// COMMANDER`, carte doppia faccia `Nome / Altro Nome`).
 - Risoluzione carte via Scryfall con cache in `.cache/`.
 - Validazione Commander: comandante, identita' colore, banlist, duplicati, dimensione, eccezioni tipo Whtz.
 - Tag funzionali da oracle text (ramp, draw, tutor, interaction, protection incluso shroud, sinergie).

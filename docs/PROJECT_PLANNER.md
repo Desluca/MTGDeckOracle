@@ -66,7 +66,7 @@ Responsabilita':
 
 - recuperare dati carta da Scryfall o cache locale;
 - esporre mana value, colori, identita' colore, tipi, oracle text e legalita';
-- gestire carte double-faced, adventure, partner e background.
+- risolvere carte double-faced, split e adventure da `Nome / Altro Nome`, `Nome // Altro Nome` o una sola faccia.
 
 ### Commander Validator
 

@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
@@ -43,6 +43,24 @@ describe("FileCardCache", () => {
     expect(cards.get("sol ring")).toEqual(solRing);
     expect(cards.get("arcane signet")).toEqual(arcaneSignet);
     expect(cards.has("missing")).toBe(false);
+  });
+
+  it("finds a double-faced card by either face in an existing cache", async () => {
+    const cachePath = join(await createTempDir(), "cards.json");
+    const pathway = createTestCard({
+      name: "Brightclimb Pathway // Grimclimb Pathway",
+      types: ["land"],
+      typeLine: "Land // Land",
+    });
+    await writeFile(
+      cachePath,
+      `${JSON.stringify({ "brightclimb pathway // grimclimb pathway": pathway }, null, 2)}\n`,
+    );
+    const cache = new FileCardCache(cachePath);
+
+    await expect(cache.get("grimclimb pathway")).resolves.toEqual(pathway);
+    const cards = await cache.getMany(["Brightclimb Pathway / Grimclimb Pathway"]);
+    expect(cards.get("brightclimb pathway // grimclimb pathway")).toEqual(pathway);
   });
 });
 

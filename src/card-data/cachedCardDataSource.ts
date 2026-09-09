@@ -1,6 +1,6 @@
 import type { Card } from "../domain/index.js";
 import type { CardCache, CardDataSource } from "./cardDataSource.js";
-import { normalizeLookupName, uniqueNormalizedNames } from "./cardDataSource.js";
+import { expandCardLookupMap, normalizeLookupName, uniqueNormalizedNames } from "./cardDataSource.js";
 
 export class CachedCardDataSource implements CardDataSource {
   constructor(
@@ -18,7 +18,7 @@ export class CachedCardDataSource implements CardDataSource {
 
     const card = await this.source.findCardByName(cardName);
     if (card) {
-      await this.cache.set(normalizedName, card);
+      await this.cache.setMany(expandCardLookupMap(new Map([[normalizedName, card]])));
     }
 
     return card;
@@ -34,8 +34,8 @@ export class CachedCardDataSource implements CardDataSource {
     }
 
     const fetched = await this.source.findCardsByNames(missingNames);
-    await this.cache.setMany(fetched);
+    await this.cache.setMany(expandCardLookupMap(fetched));
 
-    return new Map([...cached.entries(), ...fetched.entries()]);
+    return new Map([...cached.entries(), ...expandCardLookupMap(fetched).entries()]);
   }
 }

@@ -164,6 +164,7 @@ tests/
 ```
 
 La CLI `npm run analyze` e `/analyze` orchestrano `analyzeCommanderDeck` tramite `createAnalyzeRuntime`.
+`normalizeLookupName` unifica `Nome / Altro Nome` e `Nome // Altro Nome`; lookup e cache risolvono anche una sola faccia di carte double-faced, split e adventure.
 I benchmark in `loadFixtureDeck.ts` ritagliano `combo_piece` come la pipeline, cosi' CLI e test non divergono.
 `recommendDeckImprovements` propone solo carte dentro l'identita' colore e salta quelle gia' in lista.
 `--offline` o `MTG_DECK_ORACLE_OFFLINE=1` non chiama Commander Spellbook ne' Scryfall: combo da seed/cache disco, carte da `.cache/scryfall-cards.json` tramite `CacheOnlyCardDataSource`.

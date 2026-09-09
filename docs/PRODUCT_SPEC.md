@@ -39,6 +39,7 @@ Il sistema deve supportare:
 - formati con set e collector number, ad esempio `1 Jeska, Thrice Reborn (SLD) 1201`;
 - formati `1x Card Name`;
 - formati con set tra quadre, ad esempio `1 Sol Ring [CMM:400]`;
+- carte doppia faccia o split con un nome o due, ad esempio `1 Brightclimb Pathway / Grimclimb Pathway (ZNR) 285` e `1 Fire // Ice`;
 - sezioni esportate come commenti, ad esempio `// COMMANDER` e `// DECK`;
 - sezioni come Commander, Deck, Creatures, Lands, Sideboard;
 - import futuro da servizi esterni tramite URL o API.

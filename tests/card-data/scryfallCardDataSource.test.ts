@@ -68,6 +68,27 @@ describe("ScryfallCardDataSource", () => {
     expect(card?.identity.normalizedName).toBe("arcane signet");
   });
 
+  it("resolves double-faced cards requested with a single slash or either face", async () => {
+    const fetchFn = vi.fn(async () =>
+      jsonResponse({
+        data: [createScryfallCard({ name: "Brightclimb Pathway // Grimclimb Pathway" })],
+      }),
+    );
+    const source = new ScryfallCardDataSource({ fetchFn });
+
+    const cards = await source.findCardsByNames(["Brightclimb Pathway / Grimclimb Pathway"]);
+
+    expect(fetchFn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: JSON.stringify({ identifiers: [{ name: "brightclimb pathway // grimclimb pathway" }] }),
+      }),
+    );
+    expect(cards.get("brightclimb pathway // grimclimb pathway")?.identity.name).toBe("Brightclimb Pathway // Grimclimb Pathway");
+    expect(cards.get("brightclimb pathway")?.identity.name).toBe("Brightclimb Pathway // Grimclimb Pathway");
+    expect(cards.get("grimclimb pathway")?.identity.name).toBe("Brightclimb Pathway // Grimclimb Pathway");
+  });
+
   it("throws on non-OK Scryfall responses", async () => {
     const fetchFn = vi.fn(async () => new Response("{}", { status: 500, statusText: "Server Error" }));
     const source = new ScryfallCardDataSource({ fetchFn });

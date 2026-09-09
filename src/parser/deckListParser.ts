@@ -1,3 +1,4 @@
+import { normalizeLookupName } from "../card-data/cardDataSource.js";
 import type { DeckSection, DeckSourceType, ParsedDeckLine, RawDeckInput } from "../domain/index.js";
 
 export type ParseIssueCode =
@@ -315,5 +316,5 @@ export function cleanCardName(rawName: string): string {
 }
 
 export function normalizeCardName(cardName: string): string {
-  return cleanCardName(cardName).toLowerCase();
+  return normalizeLookupName(cleanCardName(cardName));
 }
